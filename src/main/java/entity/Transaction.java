@@ -3,8 +3,6 @@ package entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import org.antlr.v4.runtime.misc.NotNull;
-
 import enums.type;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
