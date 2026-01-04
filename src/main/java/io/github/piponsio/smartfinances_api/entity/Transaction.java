@@ -1,11 +1,11 @@
-package entity;
+package io.github.piponsio.smartfinances_api.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import enums.type;
+import io.github.piponsio.smartfinances_api.enums.type;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

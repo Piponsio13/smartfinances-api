@@ -1,4 +1,4 @@
-package enums;
+package io.github.piponsio.smartfinances_api.enums;
 
 public enum roleEnum {
     OWNER,
