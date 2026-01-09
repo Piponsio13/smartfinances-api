@@ -21,6 +21,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import io.github.piponsio.smartfinances_api.enums.roleEnum;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -54,6 +56,23 @@ public class User implements UserDetails{
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
                 .toList();
+    }
+
+    public void addRole(roleEnum roleName){
+        Role role = new Role();
+        role.setName(roleName);
+        role.setUser(this);
+        this.roles.add(role);
+    }
+
+    public void addCategory(Category category){
+        category.setUser(this);
+        this.categories.add(category);
+    }
+
+    public void addTransaction(Transaction transaction){
+        transaction.setUser(this);
+        this.transactions.add(transaction);
     }
 
     @Override

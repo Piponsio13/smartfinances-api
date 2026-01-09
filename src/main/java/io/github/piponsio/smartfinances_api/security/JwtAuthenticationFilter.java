@@ -1,6 +1,7 @@
 package io.github.piponsio.smartfinances_api.security;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService customUserDetailsService;
 
+    private final Logger loggs = Logger.getLogger(JwtAuthenticationFilter.class.getName());
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -36,10 +39,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
                     try {
                         username = jwtUtils.extractUsername(token);
                     } catch (Exception e) {
-                        //TODO: handle exception
+                        loggs.warning("Invalid JWT Token: " + e.getMessage());
                     }
                 }
-
+                
                 if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
                     try {
                         User user = (User) customUserDetailsService.loadUserByUsername(username);
@@ -50,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
                             SecurityContextHolder.getContext().setAuthentication(authToken);
                         }
                     } catch (Exception e) {
-                        //TODO: handle exception
+                        loggs.warning("Authentication failed: " + e.getMessage());
 
                     }
                 }
