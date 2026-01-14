@@ -259,14 +259,9 @@ smartfinances-api/
 └── pom.xml                          # Maven configuration
 ```
 
-### Coding Standards
-
-- Follow Java naming conventions
-- Write clean, self-documenting code
-- Add appropriate comments for complex logic
-
 ## 👤 Author
 
-**Felipe Ponsio**
+**Felipe Lara**
 
 - GitHub: [@piponsio](https://github.com/piponsio)
+- LinkedIn: [Luis Felipe Lara Adame](https://www.linkedin.com/in/luis-felipe-lara-adame-b2a971292/)
