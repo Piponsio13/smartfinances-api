@@ -1,4 +1,4 @@
-package io.github.piponsio.smartfinances_api.service;
+package io.github.piponsio.smartfinances_api.service.auth;
 
 
 import org.springframework.security.crypto.password.PasswordEncoder;

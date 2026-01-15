@@ -3,7 +3,7 @@ package io.github.piponsio.smartfinances_api.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.piponsio.smartfinances_api.dto.request.RegisterRequestDto;
-import io.github.piponsio.smartfinances_api.service.RegisterService;
+import io.github.piponsio.smartfinances_api.service.auth.RegisterService;
 import io.github.piponsio.smartfinances_api.utils.CustomResponse;
 import lombok.RequiredArgsConstructor;
 
