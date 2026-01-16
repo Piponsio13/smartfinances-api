@@ -1,4 +1,4 @@
-package io.github.piponsio.smartfinances_api.service;
+package io.github.piponsio.smartfinances_api.service.auth;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -31,7 +31,7 @@ public class LoginServiceImpl implements LoginService{
             if(user == null){
                 throw new Exception("User not found");
             }
-            
+
             String jwtToken = jwtUtils.generateToken(user);
 
             LoginReponseDto loginReponseDto = new LoginReponseDto();

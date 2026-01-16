@@ -5,12 +5,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.piponsio.smartfinances_api.dto.request.LoginRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.LoginReponseDto;
-import io.github.piponsio.smartfinances_api.service.LoginService;
+import io.github.piponsio.smartfinances_api.service.auth.LoginService;
 import io.github.piponsio.smartfinances_api.utils.CustomResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

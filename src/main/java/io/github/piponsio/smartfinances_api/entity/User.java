@@ -65,6 +65,11 @@ public class User implements UserDetails{
         this.roles.add(role);
     }
 
+    public void addCategories(List<Category> defaultCategories){
+        defaultCategories.forEach(category -> category.setUser(this)); 
+        this.categories.addAll(defaultCategories);
+    }
+
     public void addCategory(Category category){
         category.setUser(this);
         this.categories.add(category);
