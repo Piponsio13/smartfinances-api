@@ -1,19 +1,27 @@
-package io.github.piponsio.smartfinances_api.service;
+package io.github.piponsio.smartfinances_api.service.category;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import io.github.piponsio.smartfinances_api.dto.request.CategoryRequestDto;
 import io.github.piponsio.smartfinances_api.entity.Category;
 import io.github.piponsio.smartfinances_api.entity.User;
 import io.github.piponsio.smartfinances_api.enums.type;
+import io.github.piponsio.smartfinances_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryService {
-    public void setDefaultCategories(User user){
+public class CategoryServiceImpl implements CategoryService {
+    private final UserRepository userRepository;
+
+    @Override
+    public void setDefaultCategory(User user) {
         List<String> incomeNames = List.of("Salary", "Freelance", "Investments", "Other Income");
         List<String> expenseNames = List.of("Food & Dining", "Transportation", "Utilities", "Housing", 
                                             "Healthcare", "Shopping", "Education", "Subscriptions", 
@@ -23,6 +31,20 @@ public class CategoryService {
         user.addCategories(defaultCategories);
     }
 
+    @Override
+    @Transactional
+    public String createCustomCategory(CategoryRequestDto categoryRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User authenticatedUser = (User) authentication.getPrincipal();
+        
+        User user = userRepository.findById(authenticatedUser.getId())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        Category category = createCategory(categoryRequestDto.getCategoryName(), categoryRequestDto.getType());
+        user.addCategory(category);
+        return category.getName();
+    }
+    
     private List<Category> createDefaultCategories(List<String> incomeNames, List<String> expenseNames){
         List<Category> categories = new ArrayList<>();
     
