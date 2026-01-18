@@ -3,8 +3,6 @@ package io.github.piponsio.smartfinances_api.service.category;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,13 +10,15 @@ import io.github.piponsio.smartfinances_api.dto.request.CategoryRequestDto;
 import io.github.piponsio.smartfinances_api.entity.Category;
 import io.github.piponsio.smartfinances_api.entity.User;
 import io.github.piponsio.smartfinances_api.enums.type;
-import io.github.piponsio.smartfinances_api.repository.UserRepository;
+import io.github.piponsio.smartfinances_api.repository.CategoryRepository;
+import io.github.piponsio.smartfinances_api.utils.AuthUser;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
-    private final UserRepository userRepository;
+    private final AuthUser authUser;
+    private final CategoryRepository categoryRepository;
 
     @Override
     public void setDefaultCategory(User user) {
@@ -33,16 +33,22 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public String createCustomCategory(CategoryRequestDto categoryRequestDto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User authenticatedUser = (User) authentication.getPrincipal();
+    public String createCustomCategory(CategoryRequestDto categoryRequestDto) throws Exception{
+        User user = authUser.getAuthenticatedUser();
         
-        User user = userRepository.findById(authenticatedUser.getId())
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        
+        categoryRepository.findByNameAndUser(categoryRequestDto.getCategoryName(), user)
+            .ifPresent(c -> { throw new RuntimeException("Category already exists"); });
+
         Category category = createCategory(categoryRequestDto.getCategoryName(), categoryRequestDto.getType());
         user.addCategory(category);
         return category.getName();
+    }
+
+    @Override
+    public void deleteCategory(String name) {
+        User user = authUser.getAuthenticatedUser();
+        Category customCategory = categoryRepository.findByNameAndUser(name, user).orElseThrow(() -> new RuntimeException("Category not found"));
+        categoryRepository.delete(customCategory);
     }
     
     private List<Category> createDefaultCategories(List<String> incomeNames, List<String> expenseNames){
