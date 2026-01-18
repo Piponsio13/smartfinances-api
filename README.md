@@ -189,6 +189,33 @@ All subsequent requests require the JWT token in the Authorization header:
 Authorization: Bearer <your_jwt_token>
 ```
 
+### Categories
+
+#### Create Custom Category
+
+```http
+POST /api/category/create
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+
+{
+  "categoryName": "string",
+  "type": "INCOME" | "EXPENSE"
+}
+```
+
+Creates a new custom category for the authenticated user.
+
+**Response:**
+
+```json
+{
+  "data": "Category Name",
+  "message": "Category created successfully",
+  "statusCode": 201
+}
+```
+
 ## 🗺 Roadmap
 
 ### Phase 1: Core Financial Features
