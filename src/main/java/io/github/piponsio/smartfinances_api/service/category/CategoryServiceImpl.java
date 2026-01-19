@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.piponsio.smartfinances_api.dto.request.CategoryRequestDto;
+import io.github.piponsio.smartfinances_api.dto.response.CategoryResponseDto;
 import io.github.piponsio.smartfinances_api.entity.Category;
 import io.github.piponsio.smartfinances_api.entity.User;
 import io.github.piponsio.smartfinances_api.enums.type;
@@ -23,21 +24,23 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void setDefaultCategory(User user) {
         List<String> incomeNames = List.of("Salary", "Freelance", "Investments", "Other Income");
-        List<String> expenseNames = List.of("Food & Dining", "Transportation", "Utilities", "Housing", 
-                                            "Healthcare", "Shopping", "Education", "Subscriptions", 
-                                            "Personal Care", "Other Expenses");
-        
+        List<String> expenseNames = List.of("Food & Dining", "Transportation", "Utilities", "Housing",
+                "Healthcare", "Shopping", "Education", "Subscriptions",
+                "Personal Care", "Other Expenses");
+
         List<Category> defaultCategories = createDefaultCategories(incomeNames, expenseNames);
         user.addCategories(defaultCategories);
     }
 
     @Override
     @Transactional
-    public String createCustomCategory(CategoryRequestDto categoryRequestDto){
+    public String createCustomCategory(CategoryRequestDto categoryRequestDto) {
         User user = authUser.getAuthenticatedUser();
-        
+
         categoryRepository.findByNameAndUser(categoryRequestDto.getCategoryName(), user)
-            .ifPresent(c -> { throw new IllegalStateException("Category already exists"); });
+                .ifPresent(c -> {
+                    throw new IllegalStateException("Category already exists");
+                });
 
         Category category = createCategory(categoryRequestDto.getCategoryName(), categoryRequestDto.getType());
         user.addCategory(category);
@@ -47,20 +50,36 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteCategory(String name) {
         User user = authUser.getAuthenticatedUser();
-        Category customCategory = categoryRepository.findByNameAndUser(name, user).orElseThrow(() -> new RuntimeException("Category not found"));
+        Category customCategory = categoryRepository.findByNameAndUser(name, user)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
         categoryRepository.delete(customCategory);
     }
-    
-    private List<Category> createDefaultCategories(List<String> incomeNames, List<String> expenseNames){
+
+    @Override
+    public List<CategoryResponseDto> getAllUserCategories() {
+        User user = authUser.getAuthenticatedUser();
+
+        return user.getCategories()
+                .stream()
+                .map(category -> {
+                    CategoryResponseDto categoryResponseDto = new CategoryResponseDto();
+                    categoryResponseDto.setName(category.getName());
+                    categoryResponseDto.setType(category.getType());
+                    return categoryResponseDto;
+                })
+                .toList();
+    }
+
+    private List<Category> createDefaultCategories(List<String> incomeNames, List<String> expenseNames) {
         List<Category> categories = new ArrayList<>();
-    
+
         incomeNames.forEach(name -> categories.add(createCategory(name, type.INCOME)));
         expenseNames.forEach(name -> categories.add(createCategory(name, type.EXPENSE)));
-    
+
         return categories;
     }
 
-    private Category createCategory(String name, type categoryType){
+    private Category createCategory(String name, type categoryType) {
         Category category = new Category();
         category.setName(name);
         category.setType(categoryType);
