@@ -22,12 +22,12 @@ public class LoginController {
     private final LoginService loginService;
 
     @PostMapping("/login")
-    public ResponseEntity<CustomResponse<LoginReponseDto>> login(@RequestBody LoginRequestDto loginRequestDto) throws Exception {
+    public ResponseEntity<CustomResponse<LoginReponseDto>> login(@RequestBody LoginRequestDto loginRequestDto) {
         LoginReponseDto response = loginService.login(loginRequestDto);
 
         CustomResponse<LoginReponseDto> customResponse = CustomResponse.<LoginReponseDto>builder()
             .data(response)
-            .message("Succesfull Login")
+            .message("Successful Login")
             .statusCode(HttpStatus.OK.value())
             .build();
         return ResponseEntity.status(HttpStatus.OK.value()).body(customResponse);

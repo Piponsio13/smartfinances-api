@@ -5,6 +5,6 @@ import io.github.piponsio.smartfinances_api.entity.User;
 
 public interface CategoryService {
     void setDefaultCategory(User user);
-    String createCustomCategory(CategoryRequestDto categoryRequestDto)throws Exception;
+    String createCustomCategory(CategoryRequestDto categoryRequestDto);
     void deleteCategory(String name);
 }

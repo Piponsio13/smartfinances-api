@@ -33,11 +33,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public String createCustomCategory(CategoryRequestDto categoryRequestDto) throws Exception{
+    public String createCustomCategory(CategoryRequestDto categoryRequestDto){
         User user = authUser.getAuthenticatedUser();
         
         categoryRepository.findByNameAndUser(categoryRequestDto.getCategoryName(), user)
-            .ifPresent(c -> { throw new RuntimeException("Category already exists"); });
+            .ifPresent(c -> { throw new IllegalStateException("Category already exists"); });
 
         Category category = createCategory(categoryRequestDto.getCategoryName(), categoryRequestDto.getType());
         user.addCategory(category);
