@@ -191,6 +191,34 @@ Authorization: Bearer <your_jwt_token>
 
 ### Categories
 
+#### Get All User Categories
+
+```http
+GET /api/category/all
+Authorization: Bearer <your_jwt_token>
+```
+
+Retrieves all categories (default + custom) for the authenticated user.
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "name": "Salary",
+      "type": "INCOME"
+    },
+    {
+      "name": "Food & Dining",
+      "type": "EXPENSE"
+    }
+  ],
+  "message": "All user categories retrieved successfully",
+  "statusCode": 200
+}
+```
+
 #### Create Custom Category
 
 ```http
@@ -215,6 +243,49 @@ Creates a new custom category for the authenticated user.
   "statusCode": 201
 }
 ```
+
+#### Delete Category
+
+```http
+DELETE /api/category/delete/{name}
+Authorization: Bearer <your_jwt_token>
+```
+
+Deletes a category by name for the authenticated user.
+
+**Response:**
+
+```json
+{
+  "data": null,
+  "message": "Category deleted successfully",
+  "statusCode": 200
+}
+```
+
+**Default Categories:**
+
+When a user registers, the following categories are automatically created:
+
+**Income Categories:**
+
+- Salary
+- Freelance
+- Investments
+- Other Income
+
+**Expense Categories:**
+
+- Food & Dining
+- Transportation
+- Utilities
+- Housing
+- Healthcare
+- Shopping
+- Education
+- Subscriptions
+- Personal Care
+- Other Expenses
 
 ## 🗺 Roadmap
 

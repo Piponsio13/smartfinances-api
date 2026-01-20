@@ -57,11 +57,11 @@ public class CategoryController {
     public ResponseEntity<CustomResponse<List<CategoryResponseDto>>> getAllUserCategories() {
         List<CategoryResponseDto> response = categoryService.getAllUserCategories();
 
-        HttpStatus status = response != null ? HttpStatus.OK : HttpStatus.NO_CONTENT;
+        HttpStatus status = response.isEmpty() ? HttpStatus.NO_CONTENT : HttpStatus.OK;
 
         CustomResponse<List<CategoryResponseDto>> customResponse = CustomResponse.<List<CategoryResponseDto>>builder()
                 .data(response)
-                .message(response != null ? ALL_CATEGORIES_SUCCESFULL : ALL_CATEGORIES_NOT_FOUND)
+                .message(response.isEmpty() ? ALL_CATEGORIES_NOT_FOUND : ALL_CATEGORIES_SUCCESFULL)
                 .statusCode(status.value())
                 .build();
 
