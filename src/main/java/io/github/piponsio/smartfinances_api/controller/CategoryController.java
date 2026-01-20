@@ -2,8 +2,6 @@ package io.github.piponsio.smartfinances_api.controller;
 
 import java.util.List;
 
-import javax.print.DocFlavor.STRING;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
