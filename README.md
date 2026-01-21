@@ -39,8 +39,10 @@ Smart Finances API is a backend service designed to help users manage their pers
 ### Core Functionality
 
 - ✅ User management system
-- ✅ Transaction entity structure
-- ✅ Category management for organizing finances
+- ✅ Complete transaction CRUD operations
+- ✅ Category management (default + custom categories)
+- ✅ Income and expense tracking
+- ✅ Secure transaction-to-user association
 - ✅ Health check endpoint for monitoring
 
 ### Infrastructure
@@ -287,13 +289,144 @@ When a user registers, the following categories are automatically created:
 - Personal Care
 - Other Expenses
 
+### Transactions
+
+#### Create Transaction
+
+```http
+POST /api/transactions
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+
+{
+  "amount": 150.00,
+  "description": "Grocery shopping",
+  "type": "EXPENSE",
+  "categoryId": 1,
+  "date": "2026-01-20T10:30:00"
+}
+```
+
+Creates a new transaction for the authenticated user.
+
+**Response:**
+
+```json
+{
+  "data": null,
+  "message": "Transaction created successfully",
+  "statusCode": 201
+}
+```
+
+#### Get All User Transactions
+
+```http
+GET /api/transactions
+Authorization: Bearer <your_jwt_token>
+```
+
+Retrieves all transactions for the authenticated user.
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "amount": 150.0,
+      "description": "Grocery shopping",
+      "type": "EXPENSE",
+      "categoryName": "Food & Dining",
+      "date": "2026-01-20T10:30:00"
+    }
+  ],
+  "message": "All user transactions retrieved successfully",
+  "statusCode": 200
+}
+```
+
+#### Get Transaction by ID
+
+```http
+GET /api/transactions/{id}
+Authorization: Bearer <your_jwt_token>
+```
+
+Retrieves a specific transaction by ID (must belong to authenticated user).
+
+**Response:**
+
+```json
+{
+  "data": {
+    "id": 1,
+    "amount": 150.0,
+    "description": "Grocery shopping",
+    "type": "EXPENSE",
+    "categoryName": "Food & Dining",
+    "date": "2026-01-20T10:30:00"
+  },
+  "message": "Transaction retrieved successfully",
+  "statusCode": 200
+}
+```
+
+#### Update Transaction
+
+```http
+PUT /api/transactions/{id}
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+
+{
+  "amount": 175.50,
+  "description": "Updated grocery shopping",
+  "type": "EXPENSE",
+  "categoryId": 1,
+  "date": "2026-01-20T10:30:00"
+}
+```
+
+Updates an existing transaction (must belong to authenticated user).
+
+**Response:**
+
+```json
+{
+  "data": null,
+  "message": "Transaction updated successfully",
+  "statusCode": 200
+}
+```
+
+#### Delete Transaction
+
+```http
+DELETE /api/transactions/{id}
+Authorization: Bearer <your_jwt_token>
+```
+
+Deletes a transaction (must belong to authenticated user).
+
+**Response:**
+
+```json
+{
+  "data": null,
+  "message": "Transaction deleted successfully",
+  "statusCode": 200
+}
+```
+
 ## 🗺 Roadmap
 
-### Phase 1: Core Financial Features
+### Phase 1: Core Financial Features ✅
 
-- [ ] Complete CRUD operations for transactions
-- [ ] Income and expense tracking
-- [ ] Category management API
+- [x] Complete CRUD operations for transactions
+- [x] Income and expense tracking
+- [x] Category management API
 - [ ] Transaction filtering and search
 - [ ] Monthly/yearly financial summaries
 
