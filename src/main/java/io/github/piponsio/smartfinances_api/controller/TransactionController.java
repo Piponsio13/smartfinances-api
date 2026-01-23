@@ -72,8 +72,9 @@ public class TransactionController {
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<CustomResponse<TransactionSummaryDto>> getSummary(@RequestParam int month) {
-        TransactionSummaryDto summary = transactionService.getSummary(month);
+    public ResponseEntity<CustomResponse<TransactionSummaryDto>> getSummary(@RequestParam int month,
+            @RequestParam int year) {
+        TransactionSummaryDto summary = transactionService.getSummary(month, year);
 
         CustomResponse<TransactionSummaryDto> customResponse = CustomResponse.<TransactionSummaryDto>builder()
                 .data(summary)

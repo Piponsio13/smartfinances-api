@@ -17,5 +17,5 @@ public interface TransactionService {
 
     void deleteTransaction(Long id);
 
-    TransactionSummaryDto getSummary(int month);
+    TransactionSummaryDto getSummary(int month, int year);
 }

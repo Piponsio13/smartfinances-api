@@ -85,14 +85,15 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionSummaryDto getSummary(int month) {
+    public TransactionSummaryDto getSummary(int month, int year) {
         User user = authUser.getAuthenticatedUser();
         List<Transaction> allTransactions = transactionRepository.findByUserId(user.getId());
         BigDecimal totalIncome = new BigDecimal(0);
         BigDecimal totalExpenses = new BigDecimal(0);
 
         List<Transaction> filteredTransactions = allTransactions.stream()
-                .filter(transaction -> transaction.getDate().getMonthValue() == month)
+                .filter(transaction -> transaction.getDate().getMonthValue() == month
+                        && transaction.getDate().getYear() == year)
                 .toList();
 
         for (Transaction transaction : filteredTransactions) {
