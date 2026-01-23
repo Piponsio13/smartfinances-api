@@ -420,6 +420,30 @@ Deletes a transaction (must belong to authenticated user).
 }
 ```
 
+#### Get Transaction Summary (with optional month/year)
+
+```http
+GET /api/transactions/summary?month=1&year=2026
+Authorization: Bearer <your_jwt_token>
+```
+
+Returns a summary of income, expenses, and balance for the specified month and year. If no month/year is provided, returns summary for all transactions.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "totalIncome": 2000.0,
+    "totalExpenses": 1500.0,
+    "balance": 500.0,
+    "transactionCount": 12
+  },
+  "message": "Transaction summary retrieved successfully",
+  "statusCode": 200
+}
+```
+
 ## 🗺 Roadmap
 
 ### Phase 1: Core Financial Features ✅
