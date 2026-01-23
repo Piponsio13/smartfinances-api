@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.piponsio.smartfinances_api.dto.request.TransactionRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionResponseDto;
+import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
 import io.github.piponsio.smartfinances_api.service.transaction.TransactionService;
 import io.github.piponsio.smartfinances_api.utils.CustomResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -67,6 +69,19 @@ public class TransactionController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.OK).body(customResponse);
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<CustomResponse<TransactionSummaryDto>> getSummary(@RequestParam int month) {
+        TransactionSummaryDto summary = transactionService.getSummary(month);
+
+        CustomResponse<TransactionSummaryDto> customResponse = CustomResponse.<TransactionSummaryDto>builder()
+                .data(summary)
+                .message("Summary created succesfully")
+                .statusCode(HttpStatus.OK.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK.value()).body(customResponse);
     }
 
     @PutMapping("/{id}")
