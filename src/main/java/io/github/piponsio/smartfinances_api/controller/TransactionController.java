@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.piponsio.smartfinances_api.dto.request.TransactionFilterDto;
 import io.github.piponsio.smartfinances_api.dto.request.TransactionRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionResponseDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
@@ -25,91 +26,92 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
 public class TransactionController {
-    private final TransactionService transactionService;
+        private final TransactionService transactionService;
 
-    @PostMapping
-    public ResponseEntity<CustomResponse<Void>> createTransaction(@RequestBody TransactionRequestDto request) {
-        transactionService.createTransaction(request);
-        CustomResponse<Void> customResponse = CustomResponse.<Void>builder()
-                .data(null)
-                .message("Transaction created successfully")
-                .statusCode(HttpStatus.CREATED.value())
-                .build();
+        @PostMapping
+        public ResponseEntity<CustomResponse<Void>> createTransaction(@RequestBody TransactionRequestDto request) {
+                transactionService.createTransaction(request);
+                CustomResponse<Void> customResponse = CustomResponse.<Void>builder()
+                                .data(null)
+                                .message("Transaction created successfully")
+                                .statusCode(HttpStatus.CREATED.value())
+                                .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(customResponse);
-    }
+                return ResponseEntity.status(HttpStatus.CREATED).body(customResponse);
+        }
 
-    @GetMapping
-    public ResponseEntity<CustomResponse<List<TransactionResponseDto>>> getAllTransactions() {
-        List<TransactionResponseDto> transactions = transactionService.getAllTransactions();
+        @GetMapping
+        public ResponseEntity<CustomResponse<List<TransactionResponseDto>>> getAllTransactions(
+                        @RequestParam TransactionFilterDto filterDto) {
+                List<TransactionResponseDto> transactions = transactionService.getAllTransactions(filterDto);
 
-        HttpStatus status = transactions.isEmpty() ? HttpStatus.NO_CONTENT : HttpStatus.OK;
-        String message = transactions.isEmpty()
-                ? "User does not have transactions"
-                : "All user transactions retrieved successfully";
+                HttpStatus status = transactions.isEmpty() ? HttpStatus.NO_CONTENT : HttpStatus.OK;
+                String message = transactions.isEmpty()
+                                ? "User does not have transactions"
+                                : "All user transactions retrieved successfully";
 
-        CustomResponse<List<TransactionResponseDto>> customResponse = CustomResponse
-                .<List<TransactionResponseDto>>builder()
-                .data(transactions)
-                .message(message)
-                .statusCode(status.value())
-                .build();
+                CustomResponse<List<TransactionResponseDto>> customResponse = CustomResponse
+                                .<List<TransactionResponseDto>>builder()
+                                .data(transactions)
+                                .message(message)
+                                .statusCode(status.value())
+                                .build();
 
-        return ResponseEntity.status(status).body(customResponse);
-    }
+                return ResponseEntity.status(status).body(customResponse);
+        }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CustomResponse<TransactionResponseDto>> getTransactionById(@PathVariable Long id) {
-        TransactionResponseDto transaction = transactionService.getTransaction(id);
+        @GetMapping("/{id}")
+        public ResponseEntity<CustomResponse<TransactionResponseDto>> getTransactionById(@PathVariable Long id) {
+                TransactionResponseDto transaction = transactionService.getTransaction(id);
 
-        CustomResponse<TransactionResponseDto> customResponse = CustomResponse.<TransactionResponseDto>builder()
-                .data(transaction)
-                .message("Transaction retrieved successfully")
-                .statusCode(HttpStatus.OK.value())
-                .build();
+                CustomResponse<TransactionResponseDto> customResponse = CustomResponse.<TransactionResponseDto>builder()
+                                .data(transaction)
+                                .message("Transaction retrieved successfully")
+                                .statusCode(HttpStatus.OK.value())
+                                .build();
 
-        return ResponseEntity.status(HttpStatus.OK).body(customResponse);
-    }
+                return ResponseEntity.status(HttpStatus.OK).body(customResponse);
+        }
 
-    @GetMapping("/summary")
-    public ResponseEntity<CustomResponse<TransactionSummaryDto>> getSummary(@RequestParam int month,
-            @RequestParam int year) {
-        TransactionSummaryDto summary = transactionService.getSummary(month, year);
+        @GetMapping("/summary")
+        public ResponseEntity<CustomResponse<TransactionSummaryDto>> getSummary(@RequestParam int month,
+                        @RequestParam int year) {
+                TransactionSummaryDto summary = transactionService.getSummary(month, year);
 
-        CustomResponse<TransactionSummaryDto> customResponse = CustomResponse.<TransactionSummaryDto>builder()
-                .data(summary)
-                .message("Summary created succesfully")
-                .statusCode(HttpStatus.OK.value())
-                .build();
+                CustomResponse<TransactionSummaryDto> customResponse = CustomResponse.<TransactionSummaryDto>builder()
+                                .data(summary)
+                                .message("Summary created succesfully")
+                                .statusCode(HttpStatus.OK.value())
+                                .build();
 
-        return ResponseEntity.status(HttpStatus.OK.value()).body(customResponse);
-    }
+                return ResponseEntity.status(HttpStatus.OK.value()).body(customResponse);
+        }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CustomResponse<Void>> updateTransaction(
-            @PathVariable Long id,
-            @RequestBody TransactionRequestDto request) {
-        transactionService.updateTransaction(id, request);
+        @PutMapping("/{id}")
+        public ResponseEntity<CustomResponse<Void>> updateTransaction(
+                        @PathVariable Long id,
+                        @RequestBody TransactionRequestDto request) {
+                transactionService.updateTransaction(id, request);
 
-        CustomResponse<Void> customResponse = CustomResponse.<Void>builder()
-                .data(null)
-                .message("Transaction updated successfully")
-                .statusCode(HttpStatus.OK.value())
-                .build();
+                CustomResponse<Void> customResponse = CustomResponse.<Void>builder()
+                                .data(null)
+                                .message("Transaction updated successfully")
+                                .statusCode(HttpStatus.OK.value())
+                                .build();
 
-        return ResponseEntity.status(HttpStatus.OK).body(customResponse);
-    }
+                return ResponseEntity.status(HttpStatus.OK).body(customResponse);
+        }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponse<Void>> deleteTransaction(@PathVariable Long id) {
-        transactionService.deleteTransaction(id);
+        @DeleteMapping("/{id}")
+        public ResponseEntity<CustomResponse<Void>> deleteTransaction(@PathVariable Long id) {
+                transactionService.deleteTransaction(id);
 
-        CustomResponse<Void> customResponse = CustomResponse.<Void>builder()
-                .data(null)
-                .message("Transaction deleted successfully")
-                .statusCode(HttpStatus.OK.value())
-                .build();
+                CustomResponse<Void> customResponse = CustomResponse.<Void>builder()
+                                .data(null)
+                                .message("Transaction deleted successfully")
+                                .statusCode(HttpStatus.OK.value())
+                                .build();
 
-        return ResponseEntity.status(HttpStatus.OK).body(customResponse);
-    }
+                return ResponseEntity.status(HttpStatus.OK).body(customResponse);
+        }
 }

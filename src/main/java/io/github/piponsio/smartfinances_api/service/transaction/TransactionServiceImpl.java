@@ -3,9 +3,11 @@ package io.github.piponsio.smartfinances_api.service.transaction;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.piponsio.smartfinances_api.dto.request.TransactionFilterDto;
 import io.github.piponsio.smartfinances_api.dto.request.TransactionRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionResponseDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
@@ -41,10 +43,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionResponseDto> getAllTransactions() {
+    public List<TransactionResponseDto> getAllTransactions(TransactionFilterDto filterDto) {
         User user = authUser.getAuthenticatedUser();
+        Specification<Transaction> spec = getTransactionSpecification(filterDto, user.getId());
 
-        return user.getTransactions()
+        return transactionRepository.findAll(spec)
                 .stream()
                 .map(this::mapToResponseDto)
                 .toList();
@@ -135,5 +138,40 @@ public class TransactionServiceImpl implements TransactionService {
     private Category getCategory(Long categoryId, Long userId) {
         return categoryRepository.findByIdAndUserId(categoryId, userId)
                 .orElseThrow(() -> new RuntimeException("Category not found or does not belong to user"));
+    }
+
+    private Specification<Transaction> getTransactionSpecification(TransactionFilterDto filterDto, Long userId) {
+        return (root, query, cb) -> {
+            var predicates = cb.conjunction();
+
+            predicates.getExpressions().add(cb.equal(root.get("user").get("id"), userId));
+
+            // Apply optional filters
+            if (filterDto.getCategoryId() != null) {
+                predicates.getExpressions().add(cb.equal(root.get("category").get("id"), filterDto.getCategoryId()));
+            }
+            if (filterDto.getType() != null) {
+                predicates.getExpressions().add(cb.equal(root.get("type"), filterDto.getType()));
+            }
+            if (filterDto.getDateFrom() != null) {
+                predicates.getExpressions().add(cb.greaterThanOrEqualTo(root.get("date"), filterDto.getDateFrom()));
+            }
+            if (filterDto.getDateTo() != null) {
+                predicates.getExpressions().add(cb.lessThanOrEqualTo(root.get("date"), filterDto.getDateTo()));
+            }
+            if (filterDto.getMinAmount() != null) {
+                predicates.getExpressions().add(cb.greaterThanOrEqualTo(root.get("amount"), filterDto.getMinAmount()));
+            }
+            if (filterDto.getMaxAmount() != null) {
+                predicates.getExpressions().add(cb.lessThanOrEqualTo(root.get("amount"), filterDto.getMaxAmount()));
+            }
+            if (filterDto.getDescription() != null && !filterDto.getDescription().isEmpty()) {
+                predicates.getExpressions().add(
+                        cb.like(cb.lower(root.get("description")),
+                                "%" + filterDto.getDescription().toLowerCase() + "%"));
+            }
+
+            return predicates;
+        };
     }
 }
