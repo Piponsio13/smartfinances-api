@@ -1,7 +1,5 @@
 package io.github.piponsio.smartfinances_api.controller;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -45,7 +43,7 @@ public class TransactionController {
         @GetMapping
         public ResponseEntity<CustomResponse<List<TransactionResponseDto>>> getAllTransactions(
                         @RequestParam TransactionFilterDto filterDto) {
-                List<TransactionResponseDto> transactions = transactionService.getAllTransactions();
+                List<TransactionResponseDto> transactions = transactionService.getAllTransactions(filterDto);
 
                 HttpStatus status = transactions.isEmpty() ? HttpStatus.NO_CONTENT : HttpStatus.OK;
                 String message = transactions.isEmpty()

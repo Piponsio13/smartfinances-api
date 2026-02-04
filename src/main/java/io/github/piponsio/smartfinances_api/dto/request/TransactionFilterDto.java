@@ -13,7 +13,7 @@ public class TransactionFilterDto {
     private Long categoryId;
     private type type;
     private LocalDateTime dateFrom;
-    private LocalDateTime datTo;
+    private LocalDateTime dateTo;
     private BigDecimal minAmount;
     private BigDecimal maxAmount;
     private String description;
