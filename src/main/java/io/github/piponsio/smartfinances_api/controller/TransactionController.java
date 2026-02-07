@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.github.piponsio.smartfinances_api.dto.request.TransactionFilterDto;
 import io.github.piponsio.smartfinances_api.dto.request.TransactionRequestDto;
+import io.github.piponsio.smartfinances_api.dto.request.TransactionSummaryRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionResponseDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
 import io.github.piponsio.smartfinances_api.service.transaction.TransactionService;
@@ -74,9 +75,11 @@ public class TransactionController {
         }
 
         @GetMapping("/summary")
-        public ResponseEntity<CustomResponse<TransactionSummaryDto>> getSummary(@RequestParam int month,
-                        @RequestParam int year) {
-                TransactionSummaryDto summary = transactionService.getSummary(month, year);
+        public ResponseEntity<CustomResponse<TransactionSummaryDto>> getSummary(
+                        TransactionSummaryRequestDto requestDto) {
+                TransactionSummaryDto summary = transactionService.getSummary(
+                                requestDto.getMonth() != null ? requestDto.getMonth() : 0,
+                                requestDto.getYear() != null ? requestDto.getYear() : 0);
 
                 CustomResponse<TransactionSummaryDto> customResponse = CustomResponse.<TransactionSummaryDto>builder()
                                 .data(summary)
