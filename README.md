@@ -446,13 +446,13 @@ Returns a summary of income, expenses, and balance for the specified month and y
 
 ## 🗺 Roadmap
 
-### Phase 1: Core Financial Features ✅
+### Phase 1: Core Financial Features 🚧
 
 - [x] Complete CRUD operations for transactions
 - [x] Income and expense tracking
 - [x] Category management API
-- [ ] Transaction filtering and search
-- [ ] Monthly/yearly financial summaries
+- [x] Transaction filtering and search (with JPA Specifications)
+- [ ] Monthly/yearly financial summaries (In Progress)
 
 ### Phase 2: Analytics & Reporting
 
