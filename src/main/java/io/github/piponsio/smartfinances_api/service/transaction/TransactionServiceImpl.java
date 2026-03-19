@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.github.piponsio.smartfinances_api.dto.request.TransactionFilterDto;
 import io.github.piponsio.smartfinances_api.dto.request.TransactionRequestDto;
+import io.github.piponsio.smartfinances_api.dto.request.TransactionSummaryRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionResponseDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
 import io.github.piponsio.smartfinances_api.entity.Category;
@@ -88,15 +89,15 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionSummaryDto getSummary(int month, int year) {
+    public TransactionSummaryDto getSummary(TransactionSummaryRequestDto requestDto) {
         User user = authUser.getAuthenticatedUser();
         List<Transaction> allTransactions = transactionRepository.findByUserId(user.getId());
         BigDecimal totalIncome = new BigDecimal(0);
         BigDecimal totalExpenses = new BigDecimal(0);
 
         List<Transaction> filteredTransactions = allTransactions.stream()
-                .filter(transaction -> transaction.getDate().getMonthValue() == month
-                        && transaction.getDate().getYear() == year)
+                .filter(transaction -> transaction.getDate().getMonthValue() == requestDto.getMonth()
+                        && transaction.getDate().getYear() == requestDto.getYear())
                 .toList();
 
         for (Transaction transaction : filteredTransactions) {
