@@ -1,13 +1,13 @@
-# 💰 Smart Finances API
+# Smart Finances API
 
-A modern RESTful API for personal finance management built with Spring Boot, providing secure user authentication and financial transaction tracking.
+A RESTful API for personal finance management built with Spring Boot, providing secure user authentication, transaction tracking, category management, budget alerts, and financial dashboards.
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Current Features](#current-features)
@@ -23,91 +23,90 @@ A modern RESTful API for personal finance management built with Spring Boot, pro
 - [Contributing](#contributing)
 - [License](#license)
 
-## 🎯 Overview
+## Overview
 
-Smart Finances API is a backend service designed to help users manage their personal finances efficiently. It provides a secure foundation for tracking income, expenses, and categorizing transactions with user authentication powered by JWT tokens.
+Smart Finances API is a backend service designed to help users manage their personal finances efficiently. It provides a secure foundation for tracking income and expenses, managing categories and budgets, exporting transaction data, and visualizing monthly spending breakdowns — all protected by JWT authentication.
 
-## ✨ Current Features
+## Current Features
 
 ### Authentication & Security
 
-- ✅ User registration and login system
-- ✅ JWT-based authentication
-- ✅ Secure password handling with Spring Security
-- ✅ Role-based access control (RBAC)
+- User registration and login
+- JWT-based stateless authentication
+- Secure password hashing with BCrypt
+- Role-based access control (RBAC)
+- Input validation on all endpoints (400 with field-level error messages)
 
 ### Core Functionality
 
-- ✅ User management system
-- ✅ Complete transaction CRUD operations
-- ✅ Category management (default + custom categories)
-- ✅ Income and expense tracking
-- ✅ Secure transaction-to-user association
-- ✅ Health check endpoint for monitoring
+- Complete transaction CRUD with advanced filtering (type, category, date range, amount range, description search)
+- Category management (default + custom categories)
+- Income and expense tracking
+- Monthly/yearly financial summaries
+- Budget tracking per category with real-time spent/remaining/exceeded status
+- Dashboard with current-month summary and per-category spending breakdown
+- Transaction export to CSV (with filter support)
 
 ### Infrastructure
 
-- ✅ PostgreSQL database integration
-- ✅ Docker containerization
-- ✅ Docker Compose for easy deployment
-- ✅ Spring Actuator for application monitoring
+- PostgreSQL database integration
+- Docker containerization and Docker Compose
+- Spring Actuator for health monitoring
+- Swagger UI — interactive API documentation at `/swagger-ui.html`
+- Profile-based configuration (`dev` profile for local development)
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Backend
 
-- **Java 21** - Latest LTS version of Java
-- **Spring Boot 4.0.1** - Application framework
-- **Spring Security** - Authentication and authorization
-- **Spring Data JPA** - Database access layer
-- **Hibernate** - ORM framework
+- **Java 21**
+- **Spring Boot 4.0.1**
+- **Spring Security** — authentication and authorization
+- **Spring Data JPA / Hibernate** — database access
+- **Spring Validation** — request validation
 
 ### Database
 
-- **PostgreSQL 15** - Relational database
+- **PostgreSQL 15**
 
 ### Security
 
-- **JWT (JSON Web Tokens)** - Token-based authentication
-- **JJWT 0.12.5** - JWT implementation
+- **JWT / JJWT 0.12.5**
 
 ### DevOps
 
-- **Docker** - Containerization
-- **Docker Compose** - Multi-container orchestration
-- **Maven** - Build automation
+- **Docker / Docker Compose**
+- **Maven**
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- Java 21 or higher
+- Java 21+
 - Maven 3.8+
 - Docker & Docker Compose (for containerized deployment)
 - PostgreSQL 15 (if running locally without Docker)
 
 ### Environment Variables
 
-Create a `.env` file in the root directory with the following variables:
+Create a `.env` file in the root directory:
 
 ```env
-# Database Configuration
+# Database
 POSTGRES_DB=smartfinances
 POSTGRES_USER=your_db_user
 POSTGRES_PASSWORD=your_db_password
 
-# Spring Datasource Configuration
+# Spring Datasource
 SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/smartfinances
 SPRING_DATASOURCE_USERNAME=your_db_user
 SPRING_DATASOURCE_PASSWORD=your_db_password
 
-# JWT Configuration
+# JWT
 JWT_SECRET=your_super_secret_jwt_key_here_minimum_256_bits
 ```
 
 ### Running with Docker
-
-The easiest way to run the application is using Docker Compose:
 
 ```bash
 # Build and start all services
@@ -120,101 +119,87 @@ docker-compose logs -f backend
 docker-compose down
 ```
 
-The API will be available at `http://localhost:8080`
+The API will be available at `http://localhost:8080`.
+Swagger UI: `http://localhost:8080/swagger-ui.html`
 
 ### Running Locally
 
-1. **Start PostgreSQL** (if not using Docker)
+1. Start PostgreSQL (if not using Docker)
 
-2. **Build the project**
-
-```bash
-./mvnw clean install
-```
-
-3. **Run the application**
+2. Build and run with the `dev` profile (enables `ddl-auto=update` and SQL logging):
 
 ```bash
-./mvnw spring-boot:run
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Or run the JAR file:
+Or with the JAR:
 
 ```bash
-java -jar target/smartfinances-api-0.0.1-SNAPSHOT.jar
+java -jar target/smartfinances-api-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
 ```
 
-## 📡 API Endpoints
+> Without the `dev` profile the app runs with `ddl-auto=validate`, which requires the schema to already exist.
 
-### Health & Monitoring
+## API Endpoints
 
+All protected endpoints require:
 ```http
-GET /health
+Authorization: Bearer <your_jwt_token>
 ```
 
-Check if the API is running and healthy.
+---
 
 ### Authentication
 
 #### Register
-
 ```http
 POST /api/auth/register
 Content-Type: application/json
 
 {
-  "username": "string",
-  "password": "string",
-  "email": "string"
+  "name": "string",
+  "email": "string",       // must be a valid email
+  "password": "string"     // minimum 8 characters
 }
 ```
 
 #### Login
-
 ```http
 POST /api/auth/login
 Content-Type: application/json
 
 {
-  "username": "string",
+  "email": "string",
   "password": "string"
 }
 ```
 
-Returns a JWT token for authenticated requests.
-
-### Protected Endpoints
-
-All subsequent requests require the JWT token in the Authorization header:
-
-```http
-Authorization: Bearer <your_jwt_token>
+**Response:**
+```json
+{
+  "data": { "token": "<jwt>" },
+  "message": "Successful Login",
+  "statusCode": 200
+}
 ```
+
+---
 
 ### Categories
 
-#### Get All User Categories
+Default categories are created automatically on registration.
 
+#### Get All Categories
 ```http
 GET /api/category/all
-Authorization: Bearer <your_jwt_token>
 ```
 
-Retrieves all categories (default + custom) for the authenticated user.
-
 **Response:**
-
 ```json
 {
   "data": [
-    {
-      "name": "Salary",
-      "type": "INCOME"
-    },
-    {
-      "name": "Food & Dining",
-      "type": "EXPENSE"
-    }
+    { "id": 1, "name": "Salary", "type": "INCOME" },
+    { "id": 5, "name": "Food & Dining", "type": "EXPENSE" }
   ],
   "message": "All user categories retrieved successfully",
   "statusCode": 200
@@ -222,10 +207,8 @@ Retrieves all categories (default + custom) for the authenticated user.
 ```
 
 #### Create Custom Category
-
 ```http
-POST /api/category/create
-Authorization: Bearer <your_jwt_token>
+POST /api/category
 Content-Type: application/json
 
 {
@@ -234,203 +217,70 @@ Content-Type: application/json
 }
 ```
 
-Creates a new custom category for the authenticated user.
-
-**Response:**
-
-```json
-{
-  "data": "Category Name",
-  "message": "Category created successfully",
-  "statusCode": 201
-}
-```
-
 #### Delete Category
-
 ```http
-DELETE /api/category/delete/{name}
-Authorization: Bearer <your_jwt_token>
+DELETE /api/category/{id}
 ```
 
-Deletes a category by name for the authenticated user.
+> Returns 409 Conflict if the category has existing transactions.
 
-**Response:**
-
-```json
-{
-  "data": null,
-  "message": "Category deleted successfully",
-  "statusCode": 200
-}
-```
-
-**Default Categories:**
-
-When a user registers, the following categories are automatically created:
-
-**Income Categories:**
-
-- Salary
-- Freelance
-- Investments
-- Other Income
-
-**Expense Categories:**
-
-- Food & Dining
-- Transportation
-- Utilities
-- Housing
-- Healthcare
-- Shopping
-- Education
-- Subscriptions
-- Personal Care
-- Other Expenses
+---
 
 ### Transactions
 
 #### Create Transaction
-
 ```http
 POST /api/transactions
-Authorization: Bearer <your_jwt_token>
 Content-Type: application/json
 
 {
-  "amount": 150.00,
-  "description": "Grocery shopping",
-  "type": "EXPENSE",
+  "amount": 150.00,          // must be > 0
+  "description": "string",
+  "type": "INCOME" | "EXPENSE",
   "categoryId": 1,
   "date": "2026-01-20T10:30:00"
 }
 ```
 
-Creates a new transaction for the authenticated user.
-
-**Response:**
-
-```json
-{
-  "data": null,
-  "message": "Transaction created successfully",
-  "statusCode": 201
-}
-```
-
-#### Get All User Transactions
-
+#### Get All Transactions (with optional filters)
 ```http
-GET /api/transactions
-Authorization: Bearer <your_jwt_token>
+GET /api/transactions?type=EXPENSE&categoryId=5&dateFrom=2026-01-01T00:00:00&dateTo=2026-01-31T23:59:59&minAmount=10&maxAmount=500&description=grocery
 ```
 
-Retrieves all transactions for the authenticated user.
-
-**Response:**
-
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "amount": 150.0,
-      "description": "Grocery shopping",
-      "type": "EXPENSE",
-      "categoryName": "Food & Dining",
-      "date": "2026-01-20T10:30:00"
-    }
-  ],
-  "message": "All user transactions retrieved successfully",
-  "statusCode": 200
-}
-```
+All filter parameters are optional.
 
 #### Get Transaction by ID
-
 ```http
 GET /api/transactions/{id}
-Authorization: Bearer <your_jwt_token>
-```
-
-Retrieves a specific transaction by ID (must belong to authenticated user).
-
-**Response:**
-
-```json
-{
-  "data": {
-    "id": 1,
-    "amount": 150.0,
-    "description": "Grocery shopping",
-    "type": "EXPENSE",
-    "categoryName": "Food & Dining",
-    "date": "2026-01-20T10:30:00"
-  },
-  "message": "Transaction retrieved successfully",
-  "statusCode": 200
-}
 ```
 
 #### Update Transaction
-
 ```http
 PUT /api/transactions/{id}
-Authorization: Bearer <your_jwt_token>
 Content-Type: application/json
 
 {
   "amount": 175.50,
-  "description": "Updated grocery shopping",
+  "description": "string",
   "type": "EXPENSE",
   "categoryId": 1,
   "date": "2026-01-20T10:30:00"
 }
 ```
 
-Updates an existing transaction (must belong to authenticated user).
-
-**Response:**
-
-```json
-{
-  "data": null,
-  "message": "Transaction updated successfully",
-  "statusCode": 200
-}
-```
-
 #### Delete Transaction
-
 ```http
 DELETE /api/transactions/{id}
-Authorization: Bearer <your_jwt_token>
 ```
 
-Deletes a transaction (must belong to authenticated user).
-
-**Response:**
-
-```json
-{
-  "data": null,
-  "message": "Transaction deleted successfully",
-  "statusCode": 200
-}
-```
-
-#### Get Transaction Summary (with optional month/year)
-
+#### Get Financial Summary
 ```http
 GET /api/transactions/summary?month=1&year=2026
-Authorization: Bearer <your_jwt_token>
 ```
 
-Returns a summary of income, expenses, and balance for the specified month and year. If no month/year is provided, returns summary for all transactions.
+`month` and `year` are optional. When omitted, returns an all-time summary.
 
 **Response:**
-
 ```json
 {
   "data": {
@@ -444,23 +294,128 @@ Returns a summary of income, expenses, and balance for the specified month and y
 }
 ```
 
-## 🗺 Roadmap
+#### Export Transactions to CSV
+```http
+GET /api/transactions/export?type=EXPENSE&categoryId=5
+```
 
-### Phase 1: Core Financial Features 🚧
+Accepts the same filter parameters as the list endpoint. Returns a `transactions.csv` file download.
+
+---
+
+### Dashboard
+
+```http
+GET /api/dashboard
+```
+
+Returns the current month's summary and a per-category spending breakdown sorted by highest spend.
+
+**Response:**
+```json
+{
+  "data": {
+    "month": 7,
+    "year": 2026,
+    "totalIncome": 2000.0,
+    "totalExpenses": 1200.0,
+    "balance": 800.0,
+    "transactionCount": 15,
+    "spendingByCategory": [
+      { "categoryName": "Food & Dining", "total": 400.0, "percentage": 33.33 },
+      { "categoryName": "Transportation", "total": 200.0, "percentage": 16.67 }
+    ]
+  },
+  "message": "Dashboard retrieved successfully",
+  "statusCode": 200
+}
+```
+
+---
+
+### Budgets
+
+#### Create Budget
+```http
+POST /api/budgets
+Content-Type: application/json
+
+{
+  "categoryId": 5,
+  "monthlyLimit": 400.00,
+  "month": 7,
+  "year": 2026
+}
+```
+
+> Returns 409 Conflict if a budget already exists for that category and period.
+
+#### Get All Budgets
+```http
+GET /api/budgets
+```
+
+Returns all budgets with live spending status.
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "categoryName": "Food & Dining",
+      "monthlyLimit": 400.00,
+      "actualSpending": 320.00,
+      "remaining": 80.00,
+      "exceeded": false,
+      "month": 7,
+      "year": 2026
+    }
+  ],
+  "message": "Budgets retrieved successfully",
+  "statusCode": 200
+}
+```
+
+#### Delete Budget
+```http
+DELETE /api/budgets/{id}
+```
+
+---
+
+## Error Responses
+
+All errors follow the same envelope format:
+
+| Status | Meaning |
+|--------|---------|
+| 400 | Validation failed — `data` contains a field→message map |
+| 401 | Invalid credentials or missing/expired token |
+| 404 | Resource not found |
+| 409 | Conflict (duplicate email, duplicate budget, category has transactions) |
+| 500 | Unexpected server error |
+
+---
+
+## Roadmap
+
+### Phase 1: Core Financial Features
 
 - [x] Complete CRUD operations for transactions
 - [x] Income and expense tracking
 - [x] Category management API
-- [x] Transaction filtering and search (with JPA Specifications)
-- [ ] Monthly/yearly financial summaries (In Progress)
+- [x] Transaction filtering and search
+- [x] Monthly/yearly financial summaries
 
 ### Phase 2: Analytics & Reporting
 
-- [ ] Dashboard statistics
+- [x] Dashboard statistics with spending breakdown
+- [x] Budget tracking and alerts
+- [x] Export transactions to CSV
 - [ ] Spending patterns analysis
-- [ ] Budget tracking and alerts
-- [ ] Export transactions (CSV, PDF)
 - [ ] Visual reports and charts data
+- [ ] PDF export
 
 ### Phase 3: Advanced Features
 
@@ -478,18 +433,17 @@ Returns a summary of income, expenses, and balance for the specified month and y
 - [ ] Data import from other finance apps
 - [ ] AI-powered insights and recommendations
 
-### Infrastructure Improvements
+### Infrastructure
 
-- [ ] API documentation with Swagger/OpenAPI
+- [x] API documentation with Swagger/OpenAPI
 - [ ] Unit and integration tests
 - [ ] CI/CD pipeline
-- [ ] Logging and monitoring improvements
-- [ ] Rate limiting and API throttling
 - [ ] Database migration management (Flyway/Liquibase)
-- [ ] AWS deployment with ECS (Elastic Container Service)
+- [ ] Rate limiting and API throttling
+- [ ] AWS deployment with ECS
 - [ ] AWS RDS PostgreSQL for production database
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 smartfinances-api/
@@ -497,24 +451,31 @@ smartfinances-api/
 │   ├── main/
 │   │   ├── java/.../smartfinances_api/
 │   │   │   ├── controller/          # REST controllers
-│   │   │   ├── dto/                 # Data Transfer Objects
-│   │   │   │   ├── request/         # Request DTOs
+│   │   │   ├── dto/
+│   │   │   │   ├── request/         # Request DTOs (validated)
 │   │   │   │   └── response/        # Response DTOs
 │   │   │   ├── entity/              # JPA entities
-│   │   │   ├── enums/               # Enumerations
-│   │   │   ├── repository/          # Data repositories
-│   │   │   ├── security/            # Security configuration
-│   │   │   ├── service/             # Business logic
-│   │   │   └── utils/               # Utility classes
+│   │   │   ├── enums/               # TransactionType, RoleType
+│   │   │   ├── exception/           # GlobalExceptionHandler + custom exceptions
+│   │   │   ├── repository/          # Spring Data repositories
+│   │   │   ├── security/            # JWT filter and config
+│   │   │   ├── service/
+│   │   │   │   ├── auth/            # Login and registration
+│   │   │   │   ├── budget/          # Budget logic
+│   │   │   │   ├── category/        # Category logic
+│   │   │   │   ├── dashboard/       # Dashboard aggregation
+│   │   │   │   └── transaction/     # Transaction logic
+│   │   │   └── utils/               # AuthUser, CustomResponse
 │   │   └── resources/
-│   │       └── application.properties
-│   └── test/                        # Test files
-├── docker-compose.yml               # Docker Compose configuration
-├── Dockerfile                       # Docker image definition
-└── pom.xml                          # Maven configuration
+│   │       ├── application.properties        # Base config (production-safe)
+│   │       └── application-dev.properties    # Dev overrides (SQL logging, ddl=update)
+│   └── test/
+├── docker-compose.yml
+├── Dockerfile
+└── pom.xml
 ```
 
-## 👤 Author
+## Author
 
 **Felipe Lara**
 
