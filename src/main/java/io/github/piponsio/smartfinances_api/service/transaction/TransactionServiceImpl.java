@@ -125,6 +125,25 @@ public class TransactionServiceImpl implements TransactionService {
         return summaryDto;
     }
 
+    @Override
+    public String exportToCsv(TransactionFilterDto filterDto) {
+        User user = authUser.getAuthenticatedUser();
+        Specification<Transaction> spec = getTransactionSpecification(filterDto, user.getId());
+        List<Transaction> transactions = transactionRepository.findAll(spec);
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("id,date,amount,type,category,description\n");
+        for (Transaction t : transactions) {
+            csv.append(t.getId()).append(",")
+               .append(t.getDate()).append(",")
+               .append(t.getAmount()).append(",")
+               .append(t.getType()).append(",")
+               .append('"').append(t.getCategory().getName().replace("\"", "\"\"")).append('"').append(",")
+               .append('"').append(t.getDescription().replace("\"", "\"\"")).append('"').append("\n");
+        }
+        return csv.toString();
+    }
+
     private TransactionResponseDto mapToResponseDto(Transaction transaction) {
         TransactionResponseDto responseDto = new TransactionResponseDto();
         Category category = transaction.getCategory();

@@ -1,8 +1,11 @@
 package io.github.piponsio.smartfinances_api.controller;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -86,6 +89,15 @@ public class TransactionController {
                                 .build();
 
                 return ResponseEntity.status(HttpStatus.OK.value()).body(customResponse);
+        }
+
+        @GetMapping("/export")
+        public ResponseEntity<byte[]> exportTransactions(TransactionFilterDto filterDto) {
+                byte[] csvBytes = transactionService.exportToCsv(filterDto).getBytes(StandardCharsets.UTF_8);
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"transactions.csv\"")
+                                .contentType(MediaType.parseMediaType("text/csv"))
+                                .body(csvBytes);
         }
 
         @PutMapping("/{id}")

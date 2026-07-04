@@ -20,4 +20,6 @@ public interface TransactionService {
     void deleteTransaction(Long id);
 
     TransactionSummaryDto getSummary(TransactionSummaryRequestDto requestDto);
+
+    String exportToCsv(TransactionFilterDto filterDto);
 }
