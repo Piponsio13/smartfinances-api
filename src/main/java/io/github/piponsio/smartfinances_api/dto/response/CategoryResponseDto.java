@@ -1,6 +1,6 @@
 package io.github.piponsio.smartfinances_api.dto.response;
 
-import io.github.piponsio.smartfinances_api.enums.type;
+import io.github.piponsio.smartfinances_api.enums.TransactionType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,5 +8,5 @@ import lombok.Setter;
 @Setter
 public class CategoryResponseDto {
     String name;
-    type type;
+    TransactionType type;
 }

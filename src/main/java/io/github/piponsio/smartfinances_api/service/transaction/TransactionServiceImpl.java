@@ -15,7 +15,8 @@ import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
 import io.github.piponsio.smartfinances_api.entity.Category;
 import io.github.piponsio.smartfinances_api.entity.Transaction;
 import io.github.piponsio.smartfinances_api.entity.User;
-import io.github.piponsio.smartfinances_api.enums.type;
+import io.github.piponsio.smartfinances_api.enums.TransactionType;
+import java.time.LocalDateTime;
 import io.github.piponsio.smartfinances_api.repository.CategoryRepository;
 import io.github.piponsio.smartfinances_api.repository.TransactionRepository;
 import io.github.piponsio.smartfinances_api.utils.AuthUser;
@@ -91,19 +92,23 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionSummaryDto getSummary(TransactionSummaryRequestDto requestDto) {
         User user = authUser.getAuthenticatedUser();
-        List<Transaction> allTransactions = transactionRepository.findByUserId(user.getId());
-        BigDecimal totalIncome = new BigDecimal(0);
-        BigDecimal totalExpenses = new BigDecimal(0);
 
-        List<Transaction> filteredTransactions = allTransactions.stream()
-                .filter(transaction -> transaction.getDate().getMonthValue() == requestDto.getMonth()
-                        && transaction.getDate().getYear() == requestDto.getYear())
-                .toList();
+        List<Transaction> transactions;
+        if (requestDto.getMonth() != null && requestDto.getYear() != null) {
+            LocalDateTime start = LocalDateTime.of(requestDto.getYear(), requestDto.getMonth(), 1, 0, 0);
+            LocalDateTime end = start.plusMonths(1);
+            transactions = transactionRepository.findByUserIdAndDateBetween(user.getId(), start, end);
+        } else {
+            transactions = transactionRepository.findByUserId(user.getId());
+        }
 
-        for (Transaction transaction : filteredTransactions) {
-            if (transaction.getType() == type.INCOME) {
+        BigDecimal totalIncome = BigDecimal.ZERO;
+        BigDecimal totalExpenses = BigDecimal.ZERO;
+
+        for (Transaction transaction : transactions) {
+            if (transaction.getType() == TransactionType.INCOME) {
                 totalIncome = totalIncome.add(transaction.getAmount());
-            } else if (transaction.getType() == type.EXPENSE) {
+            } else if (transaction.getType() == TransactionType.EXPENSE) {
                 totalExpenses = totalExpenses.add(transaction.getAmount());
             }
         }
@@ -114,7 +119,7 @@ public class TransactionServiceImpl implements TransactionService {
         summaryDto.setBalance(balance);
         summaryDto.setTotalExpenses(totalExpenses);
         summaryDto.setTotalIncome(totalIncome);
-        summaryDto.setTransactionCount(allTransactions.size());
+        summaryDto.setTransactionCount(transactions.size());
 
         return summaryDto;
     }
@@ -147,7 +152,6 @@ public class TransactionServiceImpl implements TransactionService {
 
             predicates.getExpressions().add(cb.equal(root.get("user").get("id"), userId));
 
-            // Apply optional filters
             if (filterDto.getCategoryId() != null) {
                 predicates.getExpressions().add(cb.equal(root.get("category").get("id"), filterDto.getCategoryId()));
             }

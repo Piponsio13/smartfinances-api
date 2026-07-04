@@ -11,6 +11,16 @@ import io.github.piponsio.smartfinances_api.utils.CustomResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<CustomResponse<Void>> handleIllegalState(IllegalStateException ex) {
+        CustomResponse<Void> response = CustomResponse.<Void>builder()
+            .data(null)
+            .message(ex.getMessage())
+            .statusCode(HttpStatus.CONFLICT.value())
+            .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<CustomResponse<Void>> handleBadCredentials(BadCredentialsException ex) {
         CustomResponse<Void> response = CustomResponse.<Void>builder()

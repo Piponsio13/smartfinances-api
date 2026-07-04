@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import io.github.piponsio.smartfinances_api.enums.type;
+import io.github.piponsio.smartfinances_api.enums.TransactionType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,7 +41,7 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private type type;
+    private TransactionType type;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

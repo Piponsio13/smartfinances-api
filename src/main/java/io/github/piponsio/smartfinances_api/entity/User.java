@@ -21,7 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import io.github.piponsio.smartfinances_api.enums.roleEnum;
+import io.github.piponsio.smartfinances_api.enums.RoleType;
 
 @Entity
 @Table(name = "users")
@@ -58,7 +58,7 @@ public class User implements UserDetails{
                 .toList();
     }
 
-    public void addRole(roleEnum roleName){
+    public void addRole(RoleType roleName){
         Role role = new Role();
         role.setName(roleName);
         role.setUser(this);

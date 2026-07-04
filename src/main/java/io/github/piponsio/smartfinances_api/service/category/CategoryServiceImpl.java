@@ -10,7 +10,7 @@ import io.github.piponsio.smartfinances_api.dto.request.CategoryRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.CategoryResponseDto;
 import io.github.piponsio.smartfinances_api.entity.Category;
 import io.github.piponsio.smartfinances_api.entity.User;
-import io.github.piponsio.smartfinances_api.enums.type;
+import io.github.piponsio.smartfinances_api.enums.TransactionType;
 import io.github.piponsio.smartfinances_api.repository.CategoryRepository;
 import io.github.piponsio.smartfinances_api.utils.AuthUser;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +52,9 @@ public class CategoryServiceImpl implements CategoryService {
         User user = authUser.getAuthenticatedUser();
         Category customCategory = categoryRepository.findByNameAndUser(name, user)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
+        if (!customCategory.getTransactions().isEmpty()) {
+            throw new IllegalStateException("Cannot delete a category that has existing transactions");
+        }
         categoryRepository.delete(customCategory);
     }
 
@@ -73,13 +76,13 @@ public class CategoryServiceImpl implements CategoryService {
     private List<Category> createDefaultCategories(List<String> incomeNames, List<String> expenseNames) {
         List<Category> categories = new ArrayList<>();
 
-        incomeNames.forEach(name -> categories.add(createCategory(name, type.INCOME)));
-        expenseNames.forEach(name -> categories.add(createCategory(name, type.EXPENSE)));
+        incomeNames.forEach(name -> categories.add(createCategory(name, TransactionType.INCOME)));
+        expenseNames.forEach(name -> categories.add(createCategory(name, TransactionType.EXPENSE)));
 
         return categories;
     }
 
-    private Category createCategory(String name, type categoryType) {
+    private Category createCategory(String name, TransactionType categoryType) {
         Category category = new Category();
         category.setName(name);
         category.setType(categoryType);

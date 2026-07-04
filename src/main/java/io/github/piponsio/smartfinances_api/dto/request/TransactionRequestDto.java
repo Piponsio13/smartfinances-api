@@ -3,7 +3,7 @@ package io.github.piponsio.smartfinances_api.dto.request;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import io.github.piponsio.smartfinances_api.enums.type;
+import io.github.piponsio.smartfinances_api.enums.TransactionType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +12,7 @@ import lombok.Setter;
 public class TransactionRequestDto {
     private BigDecimal amount;
     private String description;
-    private type type;
+    private TransactionType type;
     private Long categoryId;
     private LocalDateTime date;
 }

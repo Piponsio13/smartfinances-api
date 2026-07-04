@@ -1,6 +1,6 @@
 package io.github.piponsio.smartfinances_api.enums;
 
-public enum roleEnum {
+public enum RoleType {
     OWNER,
     ADMIN,
     VIEWER

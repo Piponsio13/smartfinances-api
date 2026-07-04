@@ -2,7 +2,7 @@ package io.github.piponsio.smartfinances_api.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import io.github.piponsio.smartfinances_api.enums.roleEnum;
+import io.github.piponsio.smartfinances_api.enums.RoleType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,7 +27,7 @@ public class Role {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private roleEnum name;
+    private RoleType name;
     
     @JsonIgnore
     @ManyToOne

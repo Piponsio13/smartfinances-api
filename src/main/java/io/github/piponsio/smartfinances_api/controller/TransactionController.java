@@ -21,7 +21,6 @@ import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
 import io.github.piponsio.smartfinances_api.service.transaction.TransactionService;
 import io.github.piponsio.smartfinances_api.utils.CustomResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -43,7 +42,7 @@ public class TransactionController {
 
         @GetMapping
         public ResponseEntity<CustomResponse<List<TransactionResponseDto>>> getAllTransactions(
-                        @RequestParam TransactionFilterDto filterDto) {
+                        TransactionFilterDto filterDto) {
                 List<TransactionResponseDto> transactions = transactionService.getAllTransactions(filterDto);
 
                 HttpStatus status = transactions.isEmpty() ? HttpStatus.NO_CONTENT : HttpStatus.OK;
