@@ -20,6 +20,7 @@ import io.github.piponsio.smartfinances_api.dto.response.TransactionResponseDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
 import io.github.piponsio.smartfinances_api.service.transaction.TransactionService;
 import io.github.piponsio.smartfinances_api.utils.CustomResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -29,7 +30,7 @@ public class TransactionController {
         private final TransactionService transactionService;
 
         @PostMapping
-        public ResponseEntity<CustomResponse<Void>> createTransaction(@RequestBody TransactionRequestDto request) {
+        public ResponseEntity<CustomResponse<Void>> createTransaction(@Valid @RequestBody TransactionRequestDto request) {
                 transactionService.createTransaction(request);
                 CustomResponse<Void> customResponse = CustomResponse.<Void>builder()
                                 .data(null)
@@ -90,7 +91,7 @@ public class TransactionController {
         @PutMapping("/{id}")
         public ResponseEntity<CustomResponse<Void>> updateTransaction(
                         @PathVariable Long id,
-                        @RequestBody TransactionRequestDto request) {
+                        @Valid @RequestBody TransactionRequestDto request) {
                 transactionService.updateTransaction(id, request);
 
                 CustomResponse<Void> customResponse = CustomResponse.<Void>builder()

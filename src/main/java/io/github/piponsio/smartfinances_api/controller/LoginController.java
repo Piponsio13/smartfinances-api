@@ -7,6 +7,7 @@ import io.github.piponsio.smartfinances_api.dto.request.LoginRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.LoginReponseDto;
 import io.github.piponsio.smartfinances_api.service.auth.LoginService;
 import io.github.piponsio.smartfinances_api.utils.CustomResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class LoginController {
     private final LoginService loginService;
 
     @PostMapping("/login")
-    public ResponseEntity<CustomResponse<LoginReponseDto>> login(@RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<CustomResponse<LoginReponseDto>> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
         LoginReponseDto response = loginService.login(loginRequestDto);
 
         CustomResponse<LoginReponseDto> customResponse = CustomResponse.<LoginReponseDto>builder()

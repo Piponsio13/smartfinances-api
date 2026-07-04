@@ -11,6 +11,7 @@ import io.github.piponsio.smartfinances_api.dto.response.CategoryResponseDto;
 import io.github.piponsio.smartfinances_api.entity.Category;
 import io.github.piponsio.smartfinances_api.entity.User;
 import io.github.piponsio.smartfinances_api.enums.TransactionType;
+import io.github.piponsio.smartfinances_api.exception.ResourceNotFoundException;
 import io.github.piponsio.smartfinances_api.repository.CategoryRepository;
 import io.github.piponsio.smartfinances_api.utils.AuthUser;
 import lombok.RequiredArgsConstructor;
@@ -48,14 +49,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void deleteCategory(String name) {
+    @Transactional
+    public void deleteCategory(Long id) {
         User user = authUser.getAuthenticatedUser();
-        Category customCategory = categoryRepository.findByNameAndUser(name, user)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        if (!customCategory.getTransactions().isEmpty()) {
+        Category category = categoryRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        if (!category.getTransactions().isEmpty()) {
             throw new IllegalStateException("Cannot delete a category that has existing transactions");
         }
-        categoryRepository.delete(customCategory);
+        categoryRepository.delete(category);
     }
 
     @Override
@@ -66,6 +68,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .stream()
                 .map(category -> {
                     CategoryResponseDto categoryResponseDto = new CategoryResponseDto();
+                    categoryResponseDto.setId(category.getId());
                     categoryResponseDto.setName(category.getName());
                     categoryResponseDto.setType(category.getType());
                     return categoryResponseDto;

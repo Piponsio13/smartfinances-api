@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.github.piponsio.smartfinances_api.dto.request.RegisterRequestDto;
 import io.github.piponsio.smartfinances_api.service.auth.RegisterService;
 import io.github.piponsio.smartfinances_api.utils.CustomResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,7 @@ public class RegisterController {
     private final RegisterService registerService;
 
     @PostMapping("/register")
-    public ResponseEntity<CustomResponse<Void>> registerUser(@RequestBody RegisterRequestDto registerRequestDto){
+    public ResponseEntity<CustomResponse<Void>> registerUser(@Valid @RequestBody RegisterRequestDto registerRequestDto){
         registerService.registerUser(registerRequestDto);
         CustomResponse<Void>response = CustomResponse.<Void>builder()
             .data(null)

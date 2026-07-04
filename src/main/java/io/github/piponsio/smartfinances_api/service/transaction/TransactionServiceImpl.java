@@ -16,6 +16,7 @@ import io.github.piponsio.smartfinances_api.entity.Category;
 import io.github.piponsio.smartfinances_api.entity.Transaction;
 import io.github.piponsio.smartfinances_api.entity.User;
 import io.github.piponsio.smartfinances_api.enums.TransactionType;
+import io.github.piponsio.smartfinances_api.exception.ResourceNotFoundException;
 import java.time.LocalDateTime;
 import io.github.piponsio.smartfinances_api.repository.CategoryRepository;
 import io.github.piponsio.smartfinances_api.repository.TransactionRepository;
@@ -138,12 +139,12 @@ public class TransactionServiceImpl implements TransactionService {
 
     private Transaction findTransactionByIdAndUserId(Long id, Long userId) {
         return transactionRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found or does not belong to user"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
     }
 
     private Category getCategory(Long categoryId, Long userId) {
         return categoryRepository.findByIdAndUserId(categoryId, userId)
-                .orElseThrow(() -> new RuntimeException("Category not found or does not belong to user"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
     }
 
     private Specification<Transaction> getTransactionSpecification(TransactionFilterDto filterDto, Long userId) {

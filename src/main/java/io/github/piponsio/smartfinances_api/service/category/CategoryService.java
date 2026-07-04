@@ -11,7 +11,7 @@ public interface CategoryService {
 
     String createCustomCategory(CategoryRequestDto categoryRequestDto);
 
-    void deleteCategory(String name);
+    void deleteCategory(Long id);
 
     List<CategoryResponseDto> getAllUserCategories();
 }
