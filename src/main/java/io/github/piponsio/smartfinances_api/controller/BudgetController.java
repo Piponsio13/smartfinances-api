@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.piponsio.smartfinances_api.dto.request.BudgetRequestDto;
+import io.github.piponsio.smartfinances_api.dto.request.BudgetUpdateRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.BudgetResponseDto;
 import io.github.piponsio.smartfinances_api.service.budget.BudgetService;
 import io.github.piponsio.smartfinances_api.utils.CustomResponse;
@@ -44,6 +46,19 @@ public class BudgetController {
         CustomResponse<List<BudgetResponseDto>> response = CustomResponse.<List<BudgetResponseDto>>builder()
                 .data(budgets)
                 .message("Budgets retrieved successfully")
+                .statusCode(HttpStatus.OK.value())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CustomResponse<BudgetResponseDto>> updateBudget(
+            @PathVariable Long id,
+            @Valid @RequestBody BudgetUpdateRequestDto requestDto) {
+        BudgetResponseDto budget = budgetService.updateBudget(id, requestDto);
+        CustomResponse<BudgetResponseDto> response = CustomResponse.<BudgetResponseDto>builder()
+                .data(budget)
+                .message("Budget updated successfully")
                 .statusCode(HttpStatus.OK.value())
                 .build();
         return ResponseEntity.ok(response);

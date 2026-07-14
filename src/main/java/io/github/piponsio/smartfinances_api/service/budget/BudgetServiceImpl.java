@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.piponsio.smartfinances_api.dto.request.BudgetRequestDto;
+import io.github.piponsio.smartfinances_api.dto.request.BudgetUpdateRequestDto;
 import io.github.piponsio.smartfinances_api.dto.response.BudgetResponseDto;
 import io.github.piponsio.smartfinances_api.entity.Budget;
 import io.github.piponsio.smartfinances_api.entity.Category;
@@ -61,6 +62,17 @@ public class BudgetServiceImpl implements BudgetService {
         return budgetRepository.findByUserId(user.getId()).stream()
                 .map(this::mapToResponseDto)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public BudgetResponseDto updateBudget(Long id, BudgetUpdateRequestDto requestDto) {
+        User user = authUser.getAuthenticatedUser();
+        Budget budget = budgetRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Budget not found"));
+        budget.setMonthlyLimit(requestDto.getMonthlyLimit());
+        budgetRepository.save(budget);
+        return mapToResponseDto(budget);
     }
 
     @Override

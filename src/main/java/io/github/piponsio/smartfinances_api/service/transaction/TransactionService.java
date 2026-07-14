@@ -22,4 +22,6 @@ public interface TransactionService {
     TransactionSummaryDto getSummary(TransactionSummaryRequestDto requestDto);
 
     String exportToCsv(TransactionFilterDto filterDto);
+
+    byte[] exportToPdf(TransactionFilterDto filterDto);
 }

@@ -18,10 +18,18 @@ A RESTful API for personal finance management built with Spring Boot, providing 
   - [Running with Docker](#running-with-docker)
   - [Running Locally](#running-locally)
 - [API Endpoints](#api-endpoints)
+  - [Authentication](#authentication)
+  - [Categories](#categories)
+  - [Transactions](#transactions)
+  - [Dashboard](#dashboard)
+  - [Budgets](#budgets)
+  - [Analytics](#analytics)
+  - [Recurring Transactions](#recurring-transactions)
+  - [Savings Goals](#savings-goals)
+  - [Bill Reminders](#bill-reminders)
+  - [Financial Forecast](#financial-forecast)
 - [Roadmap](#roadmap)
 - [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
@@ -43,9 +51,16 @@ Smart Finances API is a backend service designed to help users manage their pers
 - Category management (default + custom categories)
 - Income and expense tracking
 - Monthly/yearly financial summaries
-- Budget tracking per category with real-time spent/remaining/exceeded status
+- Budget tracking per category with full CRUD and real-time spent/remaining/exceeded status
 - Dashboard with current-month summary and per-category spending breakdown
-- Transaction export to CSV (with filter support)
+- Transaction export to CSV and PDF (both support the same filters)
+- Spending patterns analysis — month-over-month income/expense trends with % change
+- Category spending trends — per-category monthly breakdown ready for chart rendering
+- Recurring transactions — auto-generated daily/weekly/monthly/yearly (scheduled job at midnight)
+- Savings goals with contribution tracking, progress %, and completion detection
+- Bill reminders with real-time due status (UPCOMING / DUE_SOON / DUE_TODAY / OVERDUE)
+- Financial forecasting — weighted-average projection for next month's income, expenses, and per-category spend
+- Multi-currency support — optional `currency` field (ISO 4217) on transactions, defaults to USD
 
 ### Infrastructure
 
@@ -72,6 +87,10 @@ Smart Finances API is a backend service designed to help users manage their pers
 ### Security
 
 - **JWT / JJWT 0.12.5**
+
+### PDF Generation
+
+- **OpenPDF 1.3.30**
 
 ### DevOps
 
@@ -301,6 +320,13 @@ GET /api/transactions/export?type=EXPENSE&categoryId=5
 
 Accepts the same filter parameters as the list endpoint. Returns a `transactions.csv` file download.
 
+#### Export Transactions to PDF
+```http
+GET /api/transactions/export/pdf?type=EXPENSE&categoryId=5
+```
+
+Same filters as CSV export. Returns a styled `transactions.pdf` with a summary footer (total income, expenses, and balance).
+
 ---
 
 ### Dashboard
@@ -377,10 +403,303 @@ Returns all budgets with live spending status.
 }
 ```
 
+#### Update Budget
+```http
+PUT /api/budgets/{id}
+Content-Type: application/json
+
+{
+  "monthlyLimit": 600.00
+}
+```
+
+Returns the updated budget with recalculated `actualSpending`, `remaining`, and `exceeded` fields.
+
 #### Delete Budget
 ```http
 DELETE /api/budgets/{id}
 ```
+
+---
+
+### Analytics
+
+#### Monthly Trends
+```http
+GET /api/analytics/trends?months=6
+```
+
+Returns month-by-month income, expenses, and balance for the last N months (default 6). Includes `incomeChangePercent` and `expenseChangePercent` relative to the previous month (`null` for the first month or when the previous month had no data).
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "month": 2,
+      "year": 2026,
+      "totalIncome": 2000.00,
+      "totalExpenses": 1100.00,
+      "balance": 900.00,
+      "transactionCount": 10,
+      "incomeChangePercent": null,
+      "expenseChangePercent": null
+    },
+    {
+      "month": 3,
+      "year": 2026,
+      "totalIncome": 2200.00,
+      "totalExpenses": 950.00,
+      "balance": 1250.00,
+      "transactionCount": 12,
+      "incomeChangePercent": 10.00,
+      "expenseChangePercent": -13.64
+    }
+  ],
+  "message": "Monthly trends retrieved successfully",
+  "statusCode": 200
+}
+```
+
+#### Category Spending Trends
+```http
+GET /api/analytics/category-trends?months=6
+```
+
+Returns per-category expense totals for each month in the range. Sorted by highest total spend. Useful for rendering stacked bar or line charts on the frontend.
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "categoryName": "Food & Dining",
+      "total": 1200.00,
+      "data": [
+        { "month": 2, "year": 2026, "total": 350.00 },
+        { "month": 3, "year": 2026, "total": 410.00 }
+      ]
+    }
+  ],
+  "message": "Category trends retrieved successfully",
+  "statusCode": 200
+}
+```
+
+---
+
+### Recurring Transactions
+
+#### Create Recurring Transaction
+```http
+POST /api/recurring
+Content-Type: application/json
+
+{
+  "amount": 1500.00,
+  "description": "Monthly rent",
+  "type": "EXPENSE",
+  "categoryId": 3,
+  "frequency": "MONTHLY",
+  "startDate": "2026-08-01"
+}
+```
+
+`frequency` options: `DAILY`, `WEEKLY`, `MONTHLY`, `YEARLY`
+
+#### Get All Recurring Transactions
+```http
+GET /api/recurring
+```
+
+#### Get Recurring Transaction by ID
+```http
+GET /api/recurring/{id}
+```
+
+#### Update Recurring Transaction
+```http
+PUT /api/recurring/{id}
+Content-Type: application/json
+
+{
+  "amount": 1600.00,
+  "description": "Monthly rent (updated)",
+  "type": "EXPENSE",
+  "categoryId": 3,
+  "frequency": "MONTHLY",
+  "active": true
+}
+```
+
+#### Delete Recurring Transaction
+```http
+DELETE /api/recurring/{id}
+```
+
+> Transactions are auto-generated daily at midnight via a scheduled job. Each active recurring template fires whenever today's date reaches `nextDueDate`, creates a real transaction, and advances `nextDueDate` by the configured frequency.
+
+---
+
+### Savings Goals
+
+#### Create Savings Goal
+```http
+POST /api/savings
+Content-Type: application/json
+
+{
+  "name": "Emergency Fund",
+  "targetAmount": 5000.00,
+  "targetDate": "2026-12-31"
+}
+```
+
+`targetDate` is optional.
+
+#### Get All Savings Goals
+```http
+GET /api/savings
+```
+
+**Response includes:** `savedAmount`, `remaining`, `progressPercent`, `daysRemaining`, `completed`
+
+#### Get Savings Goal by ID
+```http
+GET /api/savings/{id}
+```
+
+#### Update Savings Goal
+```http
+PUT /api/savings/{id}
+Content-Type: application/json
+
+{
+  "name": "Emergency Fund",
+  "targetAmount": 8000.00,
+  "targetDate": "2027-06-30"
+}
+```
+
+#### Delete Savings Goal
+```http
+DELETE /api/savings/{id}
+```
+
+#### Add Contribution
+```http
+POST /api/savings/{id}/contributions
+Content-Type: application/json
+
+{
+  "amount": 200.00,
+  "date": "2026-07-12",
+  "note": "Monthly savings"
+}
+```
+
+`note` is optional. Automatically marks the goal as `completed` when `savedAmount >= targetAmount`.
+
+#### Get Contributions
+```http
+GET /api/savings/{id}/contributions
+```
+
+---
+
+### Bill Reminders
+
+#### Create Bill Reminder
+```http
+POST /api/bills
+Content-Type: application/json
+
+{
+  "name": "Internet Bill",
+  "amount": 60.00,
+  "dueDay": 15,
+  "categoryId": 4
+}
+```
+
+`categoryId` and `active` are optional (`active` defaults to `true`).
+
+#### Get All Bill Reminders
+```http
+GET /api/bills
+```
+
+**Response includes computed `status`:** `UPCOMING`, `DUE_SOON` (≤3 days), `DUE_TODAY`, or `OVERDUE`.
+
+#### Update Bill Reminder
+```http
+PUT /api/bills/{id}
+Content-Type: application/json
+
+{
+  "name": "Internet Bill",
+  "amount": 65.00,
+  "dueDay": 15,
+  "active": true
+}
+```
+
+#### Delete Bill Reminder
+```http
+DELETE /api/bills/{id}
+```
+
+---
+
+### Financial Forecast
+
+```http
+GET /api/analytics/forecast?months=3
+```
+
+Returns a projection for next month based on a weighted average of the last N months (default 3, most recent month weighted highest). Includes per-category expense forecasts.
+
+**Response:**
+```json
+{
+  "data": {
+    "forecastMonth": 8,
+    "forecastYear": 2026,
+    "projectedIncome": 2150.00,
+    "projectedExpenses": 1080.00,
+    "projectedBalance": 1070.00,
+    "basedOnMonths": 3,
+    "categoryForecasts": [
+      { "categoryName": "Food & Dining", "projectedAmount": 390.00 },
+      { "categoryName": "Transportation", "projectedAmount": 210.00 }
+    ]
+  },
+  "message": "Forecast retrieved successfully",
+  "statusCode": 200
+}
+```
+
+---
+
+## Transactions — Multi-currency
+
+Transactions now accept an optional `currency` field (ISO 4217 code, defaults to `"USD"`):
+
+```http
+POST /api/transactions
+Content-Type: application/json
+
+{
+  "amount": 50.00,
+  "description": "Coffee",
+  "type": "EXPENSE",
+  "categoryId": 5,
+  "date": "2026-07-12T10:00:00",
+  "currency": "EUR"
+}
+```
+
+> Note: Dashboard, budget, and analytics endpoints aggregate amounts as-is without currency conversion. For accurate multi-currency aggregation, an external exchange rate service would be required.
 
 ---
 
@@ -413,17 +732,17 @@ All errors follow the same envelope format:
 - [x] Dashboard statistics with spending breakdown
 - [x] Budget tracking and alerts
 - [x] Export transactions to CSV
-- [ ] Spending patterns analysis
-- [ ] Visual reports and charts data
-- [ ] PDF export
+- [x] Spending patterns analysis
+- [x] Visual reports and charts data
+- [x] PDF export
 
 ### Phase 3: Advanced Features
 
-- [ ] Recurring transactions
-- [ ] Multi-currency support
-- [ ] Bill reminders and notifications
-- [ ] Savings goals tracking
-- [ ] Financial forecasting
+- [x] Recurring transactions
+- [x] Multi-currency support
+- [x] Bill reminders and notifications
+- [x] Savings goals tracking
+- [x] Financial forecasting
 
 ### Phase 4: Integration & Enhancement
 
@@ -460,6 +779,7 @@ smartfinances-api/
 │   │   │   ├── repository/          # Spring Data repositories
 │   │   │   ├── security/            # JWT filter and config
 │   │   │   ├── service/
+│   │   │   │   ├── analytics/       # Trends and chart data
 │   │   │   │   ├── auth/            # Login and registration
 │   │   │   │   ├── budget/          # Budget logic
 │   │   │   │   ├── category/        # Category logic

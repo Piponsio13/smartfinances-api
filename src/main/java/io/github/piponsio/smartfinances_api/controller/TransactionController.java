@@ -100,6 +100,15 @@ public class TransactionController {
                                 .body(csvBytes);
         }
 
+        @GetMapping("/export/pdf")
+        public ResponseEntity<byte[]> exportTransactionsPdf(TransactionFilterDto filterDto) {
+                byte[] pdfBytes = transactionService.exportToPdf(filterDto);
+                return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"transactions.pdf\"")
+                                .contentType(MediaType.APPLICATION_PDF)
+                                .body(pdfBytes);
+        }
+
         @PutMapping("/{id}")
         public ResponseEntity<CustomResponse<Void>> updateTransaction(
                         @PathVariable Long id,

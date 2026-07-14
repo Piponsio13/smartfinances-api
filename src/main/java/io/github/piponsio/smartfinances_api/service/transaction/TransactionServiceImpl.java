@@ -1,8 +1,12 @@
 package io.github.piponsio.smartfinances_api.service.transaction;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +46,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setType(transactionRequestDto.getType());
         transaction.setUser(user);
         transaction.setDate(transactionRequestDto.getDate());
+        transaction.setCurrency(transactionRequestDto.getCurrency() != null ? transactionRequestDto.getCurrency() : "USD");
         transactionRepository.save(transaction);
     }
 
@@ -76,6 +81,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setDate(request.getDate());
         transaction.setType(request.getType());
         transaction.setDescription(request.getDescription());
+        transaction.setCurrency(request.getCurrency() != null ? request.getCurrency() : "USD");
 
         transactionRepository.save(transaction);
 
@@ -144,6 +150,97 @@ public class TransactionServiceImpl implements TransactionService {
         return csv.toString();
     }
 
+    @Override
+    public byte[] exportToPdf(TransactionFilterDto filterDto) {
+        User user = authUser.getAuthenticatedUser();
+        Specification<Transaction> spec = getTransactionSpecification(filterDto, user.getId());
+        List<Transaction> transactions = transactionRepository.findAll(spec);
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            com.lowagie.text.Document doc = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4);
+            com.lowagie.text.pdf.PdfWriter.getInstance(doc, out);
+            doc.open();
+
+            com.lowagie.text.Font titleFont = new com.lowagie.text.Font(
+                    com.lowagie.text.Font.HELVETICA, 18, com.lowagie.text.Font.BOLD);
+            com.lowagie.text.Paragraph title = new com.lowagie.text.Paragraph("Transaction Report", titleFont);
+            title.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+            title.setSpacingAfter(6);
+            doc.add(title);
+
+            com.lowagie.text.Font subFont = new com.lowagie.text.Font(
+                    com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.ITALIC);
+            com.lowagie.text.Paragraph generated = new com.lowagie.text.Paragraph(
+                    "Generated on " + java.time.LocalDateTime.now()
+                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                    subFont);
+            generated.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+            generated.setSpacingAfter(20);
+            doc.add(generated);
+
+            com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(5);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{2.5f, 1.5f, 1.5f, 2f, 3f});
+
+            com.lowagie.text.Font headerFont = new com.lowagie.text.Font(
+                    com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.BOLD,
+                    new java.awt.Color(255, 255, 255));
+            java.awt.Color headerBg = new java.awt.Color(45, 85, 175);
+            for (String h : new String[]{"Date", "Amount", "Type", "Category", "Description"}) {
+                com.lowagie.text.pdf.PdfPCell cell = new com.lowagie.text.pdf.PdfPCell(
+                        new com.lowagie.text.Phrase(h, headerFont));
+                cell.setBackgroundColor(headerBg);
+                cell.setPadding(8);
+                cell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+                table.addCell(cell);
+            }
+
+            com.lowagie.text.Font cellFont = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 9);
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            boolean alt = false;
+            for (Transaction t : transactions) {
+                java.awt.Color rowBg = alt ? new java.awt.Color(240, 240, 240) : java.awt.Color.WHITE;
+                for (String text : new String[]{
+                        t.getDate().format(fmt),
+                        t.getAmount().toPlainString(),
+                        t.getType().name(),
+                        t.getCategory().getName(),
+                        t.getDescription()}) {
+                    com.lowagie.text.pdf.PdfPCell cell = new com.lowagie.text.pdf.PdfPCell(
+                            new com.lowagie.text.Phrase(text != null ? text : "", cellFont));
+                    cell.setBackgroundColor(rowBg);
+                    cell.setPadding(6);
+                    table.addCell(cell);
+                }
+                alt = !alt;
+            }
+            doc.add(table);
+
+            BigDecimal totalIncome = transactions.stream()
+                    .filter(t -> t.getType() == TransactionType.INCOME)
+                    .map(Transaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal totalExpenses = transactions.stream()
+                    .filter(t -> t.getType() == TransactionType.EXPENSE)
+                    .map(Transaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            com.lowagie.text.Font summaryFont = new com.lowagie.text.Font(
+                    com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.BOLD);
+            com.lowagie.text.Paragraph summary = new com.lowagie.text.Paragraph(
+                    String.format("Total Income: %s  |  Total Expenses: %s  |  Balance: %s",
+                            totalIncome.toPlainString(),
+                            totalExpenses.toPlainString(),
+                            totalIncome.subtract(totalExpenses).toPlainString()),
+                    summaryFont);
+            summary.setSpacingBefore(15);
+            doc.add(summary);
+
+            doc.close();
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate PDF", e);
+        }
+    }
+
     private TransactionResponseDto mapToResponseDto(Transaction transaction) {
         TransactionResponseDto responseDto = new TransactionResponseDto();
         Category category = transaction.getCategory();
@@ -153,6 +250,7 @@ public class TransactionServiceImpl implements TransactionService {
         responseDto.setDate(transaction.getDate());
         responseDto.setDescription(transaction.getDescription());
         responseDto.setType(transaction.getType());
+        responseDto.setCurrency(transaction.getCurrency() != null ? transaction.getCurrency() : "USD");
         return responseDto;
     }
 
@@ -168,35 +266,35 @@ public class TransactionServiceImpl implements TransactionService {
 
     private Specification<Transaction> getTransactionSpecification(TransactionFilterDto filterDto, Long userId) {
         return (root, query, cb) -> {
-            var predicates = cb.conjunction();
+            List<Predicate> predicates = new ArrayList<>();
 
-            predicates.getExpressions().add(cb.equal(root.get("user").get("id"), userId));
+            predicates.add(cb.equal(root.get("user").get("id"), userId));
 
             if (filterDto.getCategoryId() != null) {
-                predicates.getExpressions().add(cb.equal(root.get("category").get("id"), filterDto.getCategoryId()));
+                predicates.add(cb.equal(root.get("category").get("id"), filterDto.getCategoryId()));
             }
             if (filterDto.getType() != null) {
-                predicates.getExpressions().add(cb.equal(root.get("type"), filterDto.getType()));
+                predicates.add(cb.equal(root.get("type"), filterDto.getType()));
             }
             if (filterDto.getDateFrom() != null) {
-                predicates.getExpressions().add(cb.greaterThanOrEqualTo(root.get("date"), filterDto.getDateFrom()));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("date"), filterDto.getDateFrom()));
             }
             if (filterDto.getDateTo() != null) {
-                predicates.getExpressions().add(cb.lessThanOrEqualTo(root.get("date"), filterDto.getDateTo()));
+                predicates.add(cb.lessThanOrEqualTo(root.get("date"), filterDto.getDateTo()));
             }
             if (filterDto.getMinAmount() != null) {
-                predicates.getExpressions().add(cb.greaterThanOrEqualTo(root.get("amount"), filterDto.getMinAmount()));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("amount"), filterDto.getMinAmount()));
             }
             if (filterDto.getMaxAmount() != null) {
-                predicates.getExpressions().add(cb.lessThanOrEqualTo(root.get("amount"), filterDto.getMaxAmount()));
+                predicates.add(cb.lessThanOrEqualTo(root.get("amount"), filterDto.getMaxAmount()));
             }
             if (filterDto.getDescription() != null && !filterDto.getDescription().isEmpty()) {
-                predicates.getExpressions().add(
+                predicates.add(
                         cb.like(cb.lower(root.get("description")),
                                 "%" + filterDto.getDescription().toLowerCase() + "%"));
             }
 
-            return predicates;
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }
