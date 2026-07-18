@@ -94,22 +94,24 @@ public class RecurringTransactionServiceImpl implements RecurringTransactionServ
         LocalDate today = LocalDate.now();
         List<RecurringTransaction> due = recurringRepo.findByActiveTrueAndNextDueDateLessThanEqual(today);
         for (RecurringTransaction rt : due) {
-            Transaction t = new Transaction();
-            t.setAmount(rt.getAmount());
-            t.setDescription(rt.getDescription());
-            t.setType(rt.getType());
-            t.setCategory(rt.getCategory());
-            t.setUser(rt.getUser());
-            t.setDate(rt.getNextDueDate().atTime(12, 0));
-            transactionRepository.save(t);
+            while (!rt.getNextDueDate().isAfter(today)) {
+                Transaction t = new Transaction();
+                t.setAmount(rt.getAmount());
+                t.setDescription(rt.getDescription());
+                t.setType(rt.getType());
+                t.setCategory(rt.getCategory());
+                t.setUser(rt.getUser());
+                t.setDate(rt.getNextDueDate().atTime(12, 0));
+                transactionRepository.save(t);
 
-            LocalDate next = switch (rt.getFrequency()) {
-                case DAILY -> rt.getNextDueDate().plusDays(1);
-                case WEEKLY -> rt.getNextDueDate().plusWeeks(1);
-                case MONTHLY -> rt.getNextDueDate().plusMonths(1);
-                case YEARLY -> rt.getNextDueDate().plusYears(1);
-            };
-            rt.setNextDueDate(next);
+                LocalDate next = switch (rt.getFrequency()) {
+                    case DAILY -> rt.getNextDueDate().plusDays(1);
+                    case WEEKLY -> rt.getNextDueDate().plusWeeks(1);
+                    case MONTHLY -> rt.getNextDueDate().plusMonths(1);
+                    case YEARLY -> rt.getNextDueDate().plusYears(1);
+                };
+                rt.setNextDueDate(next);
+            }
             recurringRepo.save(rt);
         }
     }

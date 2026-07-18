@@ -3,6 +3,7 @@ package io.github.piponsio.smartfinances_api.exception;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -56,6 +57,16 @@ public class GlobalExceptionHandler {
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .build();
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<CustomResponse<Void>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        CustomResponse<Void> response = CustomResponse.<Void>builder()
+            .data(null)
+            .message("This operation could not be completed because the record is still referenced by other data")
+            .statusCode(HttpStatus.CONFLICT.value())
+            .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
     @ExceptionHandler(RuntimeException.class)
