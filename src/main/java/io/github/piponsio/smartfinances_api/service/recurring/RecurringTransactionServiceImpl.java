@@ -13,6 +13,7 @@ import io.github.piponsio.smartfinances_api.entity.Category;
 import io.github.piponsio.smartfinances_api.entity.RecurringTransaction;
 import io.github.piponsio.smartfinances_api.entity.Transaction;
 import io.github.piponsio.smartfinances_api.entity.User;
+import io.github.piponsio.smartfinances_api.enums.RecurrenceFrequency;
 import io.github.piponsio.smartfinances_api.exception.ResourceNotFoundException;
 import io.github.piponsio.smartfinances_api.repository.CategoryRepository;
 import io.github.piponsio.smartfinances_api.repository.RecurringTransactionRepository;
@@ -36,13 +37,19 @@ public class RecurringTransactionServiceImpl implements RecurringTransactionServ
         Category category = categoryRepository.findByIdAndUserId(request.getCategoryId(), user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
+        LocalDate today = LocalDate.now();
+        LocalDate nextDueDate = request.getStartDate();
+        while (nextDueDate.isBefore(today)) {
+            nextDueDate = advance(nextDueDate, request.getFrequency());
+        }
+
         RecurringTransaction rt = new RecurringTransaction();
         rt.setAmount(request.getAmount());
         rt.setDescription(request.getDescription());
         rt.setType(request.getType());
         rt.setFrequency(request.getFrequency());
         rt.setStartDate(request.getStartDate());
-        rt.setNextDueDate(request.getStartDate());
+        rt.setNextDueDate(nextDueDate);
         rt.setActive(true);
         rt.setUser(user);
         rt.setCategory(category);
@@ -94,26 +101,31 @@ public class RecurringTransactionServiceImpl implements RecurringTransactionServ
         LocalDate today = LocalDate.now();
         List<RecurringTransaction> due = recurringRepo.findByActiveTrueAndNextDueDateLessThanEqual(today);
         for (RecurringTransaction rt : due) {
-            while (!rt.getNextDueDate().isAfter(today)) {
-                Transaction t = new Transaction();
-                t.setAmount(rt.getAmount());
-                t.setDescription(rt.getDescription());
-                t.setType(rt.getType());
-                t.setCategory(rt.getCategory());
-                t.setUser(rt.getUser());
-                t.setDate(rt.getNextDueDate().atTime(12, 0));
-                transactionRepository.save(t);
+            Transaction t = new Transaction();
+            t.setAmount(rt.getAmount());
+            t.setDescription(rt.getDescription());
+            t.setType(rt.getType());
+            t.setCategory(rt.getCategory());
+            t.setUser(rt.getUser());
+            t.setDate(rt.getNextDueDate().atTime(12, 0));
+            transactionRepository.save(t);
 
-                LocalDate next = switch (rt.getFrequency()) {
-                    case DAILY -> rt.getNextDueDate().plusDays(1);
-                    case WEEKLY -> rt.getNextDueDate().plusWeeks(1);
-                    case MONTHLY -> rt.getNextDueDate().plusMonths(1);
-                    case YEARLY -> rt.getNextDueDate().plusYears(1);
-                };
-                rt.setNextDueDate(next);
+            LocalDate next = advance(rt.getNextDueDate(), rt.getFrequency());
+            while (!next.isAfter(today)) {
+                next = advance(next, rt.getFrequency());
             }
+            rt.setNextDueDate(next);
             recurringRepo.save(rt);
         }
+    }
+
+    private LocalDate advance(LocalDate date, RecurrenceFrequency frequency) {
+        return switch (frequency) {
+            case DAILY -> date.plusDays(1);
+            case WEEKLY -> date.plusWeeks(1);
+            case MONTHLY -> date.plusMonths(1);
+            case YEARLY -> date.plusYears(1);
+        };
     }
 
     private RecurringTransaction findOwned(Long id, Long userId) {
