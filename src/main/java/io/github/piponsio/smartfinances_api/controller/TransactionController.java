@@ -14,13 +14,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.github.piponsio.smartfinances_api.dto.request.TransactionFilterDto;
 import io.github.piponsio.smartfinances_api.dto.request.TransactionRequestDto;
 import io.github.piponsio.smartfinances_api.dto.request.TransactionSummaryRequestDto;
+import io.github.piponsio.smartfinances_api.dto.response.CategorySuggestionDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionResponseDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
+import io.github.piponsio.smartfinances_api.enums.TransactionType;
 import io.github.piponsio.smartfinances_api.service.transaction.TransactionService;
 import io.github.piponsio.smartfinances_api.utils.CustomResponse;
 import jakarta.validation.Valid;
@@ -42,6 +45,21 @@ public class TransactionController {
                                 .build();
 
                 return ResponseEntity.status(HttpStatus.CREATED).body(customResponse);
+        }
+
+        @GetMapping("/suggest-category")
+        public ResponseEntity<CustomResponse<CategorySuggestionDto>> suggestCategory(
+                        @RequestParam String description,
+                        @RequestParam TransactionType type) {
+                CategorySuggestionDto suggestion = transactionService.suggestCategory(description, type);
+
+                CustomResponse<CategorySuggestionDto> customResponse = CustomResponse.<CategorySuggestionDto>builder()
+                                .data(suggestion)
+                                .message("Category suggestion retrieved successfully")
+                                .statusCode(HttpStatus.OK.value())
+                                .build();
+
+                return ResponseEntity.status(HttpStatus.OK).body(customResponse);
         }
 
         @GetMapping

@@ -14,8 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import io.github.piponsio.smartfinances_api.dto.request.TransactionFilterDto;
 import io.github.piponsio.smartfinances_api.dto.request.TransactionRequestDto;
 import io.github.piponsio.smartfinances_api.dto.request.TransactionSummaryRequestDto;
+import io.github.piponsio.smartfinances_api.dto.response.CategorySuggestionDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionResponseDto;
 import io.github.piponsio.smartfinances_api.dto.response.TransactionSummaryDto;
+import io.github.piponsio.smartfinances_api.service.category.CategorySuggestionService;
 import io.github.piponsio.smartfinances_api.entity.Category;
 import io.github.piponsio.smartfinances_api.entity.Transaction;
 import io.github.piponsio.smartfinances_api.entity.User;
@@ -32,7 +34,14 @@ import lombok.RequiredArgsConstructor;
 public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
+    private final CategorySuggestionService categorySuggestionService;
     private final AuthUser authUser;
+
+    @Override
+    public CategorySuggestionDto suggestCategory(String description, TransactionType type) {
+        User user = authUser.getAuthenticatedUser();
+        return categorySuggestionService.suggest(user.getId(), description, type);
+    }
 
     @Override
     @Transactional
